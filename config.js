@@ -1,4 +1,4 @@
    window.RS_CONFIG = {
-     url: 'https://твой-проект.supabase.co',
-     key: 'sb_publishable_...'
+     url: 'https://imkezawbhqbvtlthsvqx.supabase.co',
+     key: 'sb_publishable_tFmZW_xFlMZyFQHhS5HR6Q_0ofOGNSh'
    };
