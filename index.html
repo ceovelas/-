@@ -11,154 +11,262 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <title>Расписание</title>
 <style>
 :root{
-  --bg:#000;--s1:#1C1C1E;--s2:#2C2C2E;--line:#2E2E30;--chip:#161617;--chipb:#2A2A2C;--sep:#3A3A3C;
-  --t2:#8E8E93;--t3:#636366;--ph:#6D6D72;
+  --bg:#000;--card:#1C1C1E;--card2:#2C2C2E;--fill:rgba(120,120,128,.24);--fill2:rgba(120,120,128,.16);
+  --sep:rgba(84,84,88,.6);--t1:#FFFFFF;--t2:rgba(235,235,245,.6);--t3:rgba(235,235,245,.3);
   --amb:#F4A73B;--ambd:#D4902E;--ambb:#F2B550;--ambt:#FFF7EA;
-  --lbg:#1B2A40;--lt:#8DBDFF;--cbg:#3A2A14;--ct:#F4C27A;--red:#FF453A;
-  --ease:cubic-bezier(.32,.72,0,1);--st:env(safe-area-inset-top);--sb:env(safe-area-inset-bottom)
+  --blue:#5AA0FF;--blueT:rgba(10,132,255,.16);--ambT:rgba(244,167,59,.16);--grn:#30D158;--red:#FF453A;
+  --ease:cubic-bezier(.32,.72,0,1);
+  --spring:cubic-bezier(.32,.72,0,1);--bounce:cubic-bezier(.34,1.3,.64,1);
+  --st:env(safe-area-inset-top);--sb:env(safe-area-inset-bottom);
+  --f:'Manrope',-apple-system,BlinkMacSystemFont,Roboto,system-ui,sans-serif
 }
+@supports (transition-timing-function: linear(0, 1)){:root{
+  --spring:linear(0,0.027,0.0937,0.1828,0.282,0.3828,0.4795,0.5687,0.6485,0.7182,0.7778,0.8277,0.8689,0.9024,0.9291,0.95,0.9661,0.9784,0.9874,0.9939,0.9985,1.0015,1.0034,1.0045,1.0049,1.005,1.0048,1.0044,1.0039,1.0034,1.0029,1.0025,1.002,1);
+  --bounce:linear(0,0.0257,0.0918,0.1839,0.2901,0.4015,0.511,0.614,0.7071,0.7887,0.8578,0.9147,0.9599,0.9945,1.0197,1.037,1.0476,1.053,1.0543,1.0525,1.0487,1.0436,1.0378,1.0317,1.0258,1.0203,1.0153,1.011,1.0073,1.0043,1.0019,1.0001,0.9988,0.9979,0.9974,0.9971,0.9971,0.9972,0.9974,0.9977,1);
+}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;background:var(--bg);color:#fff;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Roboto,system-ui,sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior:none;-webkit-user-select:none;user-select:none}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--t1);font-family:var(--f);font-feature-settings:"tnum" 1;-webkit-font-smoothing:antialiased;overscroll-behavior:none;-webkit-user-select:none;user-select:none;letter-spacing:-.01em}
 body{overflow:hidden}
-button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
-input{font:inherit;color:#fff;-webkit-user-select:text;user-select:text}
-input::placeholder{color:var(--ph)}
-.hid{position:fixed;left:-200px;top:0;width:1px;height:1px;opacity:0}
-svg{display:block}
+button,a{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer;letter-spacing:inherit;text-decoration:none}
+input{font:inherit;color:var(--t1);-webkit-user-select:text;user-select:text;letter-spacing:inherit}
+input::placeholder{color:var(--t3)}
+svg{display:block;flex-shrink:0}
+.ovl{position:absolute;inset:0;width:100%;height:100%;opacity:0;border:0;padding:0;margin:0;-webkit-appearance:none;appearance:none;cursor:pointer;z-index:2;font-size:16px}
 
-.app{position:fixed;inset:0;overflow:hidden;background:var(--bg);transform-origin:50% 0;transition:transform .5s var(--ease),border-radius .5s var(--ease),filter .5s var(--ease)}
-body.sheet-open .app{transform:translateY(calc(var(--st) + 8px)) scale(.93);border-radius:38px;filter:brightness(.55)}
+/* ===== Liquid Glass: тонкий, полупрозрачный, без объема ===== */
+.glass{position:relative;background:rgba(255,255,255,.07);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);
+  box-shadow:inset 0 0 0 .5px rgba(255,255,255,.14),inset 0 .5px 0 rgba(255,255,255,.22)}
+.tap{transition:transform .5s var(--spring),opacity .2s}
+.tap:active{transform:scale(.94);opacity:.75;transition-duration:.12s}
 
-.glass{background:rgba(28,28,30,.72);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);border:1px solid rgba(255,255,255,.09);box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 10px 30px rgba(0,0,0,.35)}
-.press{transition:transform .25s var(--ease),opacity .25s}
-.press:active{transform:scale(.92);opacity:.8}
+.app{position:fixed;inset:0;overflow:hidden;background:var(--bg);transform-origin:50% 0;transition:transform .64s var(--spring),border-radius .64s var(--spring),opacity .4s}
+body.sheet-open .app{transform:translateY(calc(var(--st) + 6px)) scale(.94);border-radius:36px;opacity:.55}
 
-/* шапка */
-.top{position:absolute;left:0;right:0;top:0;z-index:5;padding:calc(var(--st) + 8px) 18px 12px;transition:background .3s,opacity .3s,transform .4s var(--ease)}
-.top.scrolled{background:rgba(0,0,0,.62);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%)}
-.top.away{opacity:0;transform:translateY(-8px);pointer-events:none}
-.bar{position:relative;display:flex;align-items:center;justify-content:space-between;height:44px}
-.ttl{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:18px;font-weight:600;white-space:nowrap}
-.pill{display:flex;align-items:center;justify-content:space-around;width:104px;height:44px;border-radius:22px;padding:0 4px}
-.pill button{width:44px;height:40px;display:flex;align-items:center;justify-content:center}
-.rgt{display:flex;gap:10px}
-.circ{width:44px;height:44px;border-radius:22px;display:flex;align-items:center;justify-content:center}
+/* ===== верхняя панель ===== */
+.top{position:absolute;left:0;right:0;top:0;z-index:5;padding:calc(var(--st) + 6px) 16px 10px;transition:opacity .35s var(--ease),transform .5s var(--spring)}
+.top::before{content:"";position:absolute;inset:0;opacity:0;transition:opacity .3s;background:rgba(0,0,0,.6);-webkit-backdrop-filter:blur(30px) saturate(180%);backdrop-filter:blur(30px) saturate(180%);box-shadow:0 .5px 0 rgba(255,255,255,.08);pointer-events:none}
+.top.scrolled::before{opacity:1}
+.top.away{opacity:0;transform:translateY(-12px);pointer-events:none}
+.bar{position:relative;display:flex;align-items:center;gap:8px;height:52px}
+.who{display:flex;align-items:center;gap:10px;height:52px;padding:0 16px 0 6px;border-radius:26px;min-width:0;max-width:62%}
+.who .tile{width:40px;height:40px;border-radius:20px;background:rgba(244,167,59,.18);color:var(--amb);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.who b{display:block;font-size:15.5px;font-weight:700;line-height:19px}
+.who span{display:block;font-size:12.5px;font-weight:600;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who>div{min-width:0}
+.grpb{display:flex;align-items:center;height:52px;border-radius:26px;padding:0 4px;margin-left:auto}
+.grpb>*{width:46px;height:44px;display:flex;align-items:center;justify-content:center;position:relative}
+.circ{width:52px;height:52px;border-radius:26px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 
-/* дни */
-.days{display:flex;gap:10px;overflow-x:auto;margin:14px -18px 0;padding:0 18px;scrollbar-width:none;scroll-snap-type:x proximity;scroll-padding-inline:18px}
+/* ===== страницы ===== */
+.page{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(var(--st) + 76px) 16px calc(var(--sb) + 120px);visibility:hidden;opacity:0;pointer-events:none}
+.page.on{visibility:visible;opacity:1;pointer-events:auto}
+.page.in-r{animation:pinR .64s var(--spring)}.page.in-l{animation:pinL .64s var(--spring)}
+@keyframes pinR{from{opacity:0;transform:translateX(40px)}}
+@keyframes pinL{from{opacity:0;transform:translateX(-40px)}}
+.page.plain{padding-top:calc(var(--st) + 12px)}
+.phead{display:flex;align-items:center;justify-content:space-between;margin:2px 2px 6px;min-height:52px}
+.h1{font-size:34px;font-weight:800;letter-spacing:-.035em}
+
+/* ===== герой дня ===== */
+.hero{display:flex;flex-direction:column;align-items:center;padding:14px 0 6px}
+.hrow{display:flex;align-items:center;gap:8px;height:44px}
+.hrow>span{font-size:16px;font-weight:600;color:var(--t2)}
+.dpill{display:flex;align-items:center;height:44px;border-radius:22px;padding:0 4px}
+.dpill button{width:36px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--t2)}
+.dpill .lab{min-width:112px;text-align:center;font-size:16px;font-weight:700;color:var(--t1);position:relative;height:44px;overflow:hidden}
+.dpill .lab i{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-style:normal;white-space:nowrap}
+.reset{width:36px;height:36px;border-radius:18px;display:flex;align-items:center;justify-content:center;color:var(--amb);transition:opacity .35s var(--ease),transform .76s var(--bounce)}
+.reset.off{opacity:0;transform:scale(.4) rotate(-90deg);pointer-events:none}
+.big{display:flex;align-items:baseline;gap:10px;margin-top:6px;height:84px}
+.big b{font-size:80px;font-weight:800;letter-spacing:-.06em;line-height:84px}
+.big span{font-size:22px;font-weight:700;color:var(--t2);letter-spacing:-.02em}
+.kinds{display:flex;gap:22px;margin-top:2px;font-size:17px;font-weight:700}
+.kinds div{display:flex;align-items:center;gap:8px}
+.kinds i{width:24px;height:24px;border-radius:12px;display:flex;align-items:center;justify-content:center}
+
+/* ===== полоса дней ===== */
+.days{display:flex;gap:8px;overflow-x:auto;margin:18px -16px 0;padding:0 16px;scrollbar-width:none;scroll-snap-type:x proximity;scroll-padding-inline:16px}
 .days::-webkit-scrollbar{display:none}
-.day{flex:0 0 60px;height:46px;border-radius:14px;background:var(--chip);border:1px solid var(--chipb);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;scroll-snap-align:start;transition:background .3s var(--ease),border-color .3s,transform .25s var(--ease)}
-.day small{font-size:11.5px;color:#9A9AA0;transition:color .3s}
-.day b{font-size:14px;color:#C7C7CC;font-variant-numeric:tabular-nums;transition:color .3s}
+.day{position:relative;flex:0 0 52px;height:62px;border-radius:18px;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;scroll-snap-align:start;transition:background .4s var(--ease),transform .5s var(--spring)}
+.day small{font-size:12px;font-weight:600;color:var(--t2);transition:color .3s}
+.day b{font-size:18px;font-weight:800;letter-spacing:-.02em;transition:color .3s}
+.day.past b{color:rgba(255,255,255,.45)}
 .day.today small{color:var(--amb)}
-.day.on{background:var(--ambd);border-color:var(--ambb)}
-.day.on small{color:#FFF0D6}.day.on b{color:var(--ambt)}
-.day:active{transform:scale(.92)}
+.day i{position:absolute;bottom:6px;width:4px;height:4px;border-radius:2px;background:transparent;transition:background .3s}
+.day.has i{background:rgba(255,255,255,.35)}
+.day.on{background:var(--ambd);box-shadow:inset 0 0 0 1px var(--ambb)}
+.day.on small{color:#FFEACB}.day.on b{color:var(--ambt)}.day.on i{background:rgba(255,247,234,.7)}
+.day:active{transform:scale(.9);transition-duration:.12s}
 
-/* страницы */
-.page{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(var(--st) + 140px) 18px calc(var(--sb) + 110px);opacity:0;pointer-events:none;transform:scale(.985);transition:opacity .3s var(--ease),transform .45s var(--ease)}
-.page.on{opacity:1;pointer-events:auto;transform:none}
-.page.plain{padding-top:calc(var(--st) + 20px)}
-.h1{font-size:32px;font-weight:700;margin:6px 4px 18px}
-
-/* карточки */
-.list{display:flex;flex-direction:column;gap:10px}
-.list.inL{animation:inL .38s var(--ease)}.list.inR{animation:inR .38s var(--ease)}
-@keyframes inL{from{opacity:0;transform:translateX(28px)}}
-@keyframes inR{from{opacity:0;transform:translateX(-28px)}}
-.cw{position:relative;border-radius:20px}
-.cw.enter{animation:up .5s var(--ease) both;animation-delay:calc(var(--i) * 40ms)}
-@keyframes up{from{opacity:0;transform:translateY(12px) scale(.97)}}
-.del{position:absolute;inset:0;border-radius:20px;background:var(--red);display:flex;align-items:center;justify-content:flex-end;padding-right:20px;font-size:15px;font-weight:600;opacity:0;transition:opacity .2s}
+/* ===== записи ===== */
+.list{display:flex;flex-direction:column;gap:8px;margin-top:18px}
+.list.inL{animation:inL .64s var(--spring)}.list.inR{animation:inR .64s var(--spring)}
+@keyframes inL{from{opacity:0;transform:translateX(44px)}}
+@keyframes inR{from{opacity:0;transform:translateX(-44px)}}
+.cw{position:relative;border-radius:24px}
+.cw.enter{animation:up .7s var(--spring) both;animation-delay:calc(var(--i) * 40ms)}
+@keyframes up{from{opacity:0;transform:translateY(16px)}}
+.cw.fresh .card{animation:fresh 1.4s var(--ease)}
+@keyframes fresh{0%{background:#3A2F1F}100%{background:var(--card)}}
+.del{position:absolute;inset:0;border-radius:24px;background:var(--red);display:flex;align-items:center;justify-content:flex-end;padding-right:22px;font-size:15px;font-weight:700;opacity:0;transition:opacity .2s}
 .cw.sw .del{opacity:1}
-.card{position:relative;height:64px;border-radius:20px;background:var(--s1);border:1px solid var(--chipb);display:flex;align-items:center;gap:14px;padding:0 16px;touch-action:pan-y;transition:transform .45s var(--ease),opacity .3s}
+.card{position:relative;min-height:76px;border-radius:24px;background:var(--card);display:flex;align-items:center;gap:14px;padding:12px 18px 12px 12px;touch-action:pan-y;transition:transform .64s var(--spring),opacity .3s}
 .cw.past .card{opacity:.45}
-.tm{width:48px;display:flex;flex-direction:column;font-variant-numeric:tabular-nums}
-.tm b{font-size:16px;font-weight:600;line-height:20px}.tm span{font-size:13px;color:var(--t2);line-height:17px}
-.nm{flex:1;min-width:0;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tag{flex-shrink:0;height:24px;padding:0 10px;border-radius:12px;display:flex;align-items:center;font-size:12.5px;font-weight:600}
-.tag.lesson{background:var(--lbg);color:var(--lt)}.tag.call{background:var(--cbg);color:var(--ct)}
+.ic{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ic.lesson{background:var(--blueT);color:var(--blue)}.ic.call{background:var(--ambT);color:var(--amb)}
+.nm{flex:1;min-width:0}
+.nm b{display:block;font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.02em}
+.nm span{display:block;font-size:14.5px;font-weight:600;color:var(--t2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nm span em{font-style:normal;color:var(--amb)}
+.rt{text-align:right;flex-shrink:0}
+.rt b{display:block;font-size:17px;font-weight:700;letter-spacing:-.02em}
+.rt span{display:block;font-size:13px;font-weight:600;color:var(--t3);margin-top:2px}
 
-.empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:22vh;animation:fade .5s var(--ease)}
-@keyframes fade{from{opacity:0;transform:translateY(8px)}}
-.empty b{margin-top:12px;font-size:17px;font-weight:700}
-.empty span{margin-top:3px;font-size:15px;color:#98989F}
-.addbtn{margin-top:12px;height:32px;padding:0 14px;border-radius:16px;background:var(--amb);border:1px solid #FFD27A;color:#FFF3C4;display:flex;align-items:center;gap:6px;font-size:15px}
+.empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding:9vh 20px 0;animation:fade .7s var(--spring)}
+@keyframes fade{from{opacity:0;transform:translateY(10px)}}
+.empty b{font-size:18px;font-weight:800;margin-top:14px;letter-spacing:-.02em}
+.empty span{margin-top:4px;font-size:15px;font-weight:600;color:var(--t2);max-width:270px;line-height:1.4}
+.addbtn{margin-top:18px;height:44px;padding:0 20px;border-radius:22px;background:var(--ambd);box-shadow:inset 0 0 0 1px var(--ambb);color:var(--ambt);display:flex;align-items:center;gap:8px;font-size:15.5px;font-weight:700}
 
-/* таббар */
-.tabs{position:absolute;left:50%;bottom:calc(var(--sb) + 10px);transform:translateX(-50%);width:276px;height:56px;border-radius:28px;display:grid;grid-template-columns:repeat(3,1fr);padding:3px;z-index:6}
-.thumb{position:absolute;top:3px;bottom:3px;left:3px;width:calc((100% - 6px) / 3);border-radius:25px;background:rgba(255,255,255,.12);transition:transform .5s var(--ease)}
-.tab{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10.5px;font-weight:500;transition:color .3s}
-.tab.on{color:var(--amb);font-weight:600}
-.tab:active svg{transform:scale(.88)}.tab svg{transition:transform .25s var(--ease)}
+/* ===== нижнее меню и стеклянная капля ===== */
+.tabs{position:absolute;left:50%;bottom:calc(var(--sb) + 10px);transform:translateX(-50%);width:300px;height:64px;border-radius:32px;display:grid;grid-template-columns:repeat(3,1fr);padding:4px;z-index:6;touch-action:none;
+  box-shadow:inset 0 0 0 .5px rgba(255,255,255,.14),inset 0 .5px 0 rgba(255,255,255,.22),0 8px 30px rgba(0,0,0,.5)}
+.drop{position:absolute;top:4px;bottom:4px;left:4px;border-radius:28px;z-index:0;background:rgba(255,255,255,.1);
+  transition:transform .76s var(--bounce),background .35s var(--ease),box-shadow .35s var(--ease)}
+.drop.lift{background:rgba(255,255,255,.035);box-shadow:inset 0 0 0 1px rgba(255,255,255,.32),inset 0 1px 0 rgba(255,255,255,.4),0 6px 22px rgba(0,0,0,.3);-webkit-backdrop-filter:blur(1px) saturate(220%) brightness(1.2);backdrop-filter:blur(1px) saturate(220%) brightness(1.2)}
+.tab{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:700;color:rgba(255,255,255,.92);transition:color .3s}
+.tab.on{color:var(--amb)}
+.tab svg{transition:transform .76s var(--bounce)}
+.tab.on svg{transform:scale(1.08)}
 
-/* шторка */
-.scrim{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .45s var(--ease)}
+/* ===== сегменты ===== */
+.seg{position:relative;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;height:40px;border-radius:20px;background:var(--fill2);padding:3px;touch-action:pan-y}
+.seg .drop{top:3px;bottom:3px;left:3px;border-radius:17px;background:#636366;box-shadow:0 3px 8px rgba(0,0,0,.22)}
+.seg .drop.lift{background:rgba(120,120,128,.5);box-shadow:inset 0 0 0 1px rgba(255,255,255,.3),0 6px 18px rgba(0,0,0,.3)}
+.seg button{position:relative;z-index:1;font-size:14.5px;font-weight:700;color:var(--t2);transition:color .3s}
+.seg button.on{color:#fff}
+
+/* ===== шторка ===== */
+.scrim{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .5s var(--ease)}
 body.sheet-open .scrim{opacity:1;pointer-events:auto}
-.sheet{position:fixed;left:0;right:0;bottom:0;top:calc(var(--st) + 14px);z-index:21;background:var(--s1);border-radius:38px 38px 0 0;display:flex;flex-direction:column;transform:translateY(105%);transition:transform .52s var(--ease);box-shadow:0 -10px 40px rgba(0,0,0,.5)}
+.sheet{position:fixed;left:0;right:0;bottom:0;top:calc(var(--st) + 12px);z-index:21;background:#1C1C1E;border-radius:36px 36px 0 0;display:flex;flex-direction:column;transform:translateY(105%);transition:transform .64s var(--spring);box-shadow:inset 0 .5px 0 rgba(255,255,255,.1)}
 body.sheet-open .sheet{transform:none}
-.grab{width:36px;height:5px;border-radius:3px;background:#48484A;margin:8px auto 0}
-.sh-head{display:flex;align-items:center;justify-content:space-between;padding:10px 18px 8px;touch-action:none}
-.sh-ttl{font-size:17px;font-weight:600}
-.sh-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 18px calc(var(--sb) + 40px)}
-.cbtn{width:40px;height:40px;border-radius:20px;background:#232325;border:1px solid var(--sep);display:flex;align-items:center;justify-content:center;transition:background .35s var(--ease),border-color .35s,transform .25s var(--ease),opacity .3s}
-.cbtn:active{transform:scale(.9)}
-.cbtn.dis{background:#58585C;border-color:#6E6E73;opacity:.55}
-.cbtn.ok{background:var(--ambd);border-color:var(--ambb);color:var(--ambt);animation:pop .45s var(--ease)}
-@keyframes pop{40%{transform:scale(1.12)}}
-.sheet .day{background:var(--s2);border-color:var(--sep)}
-.sheet .day.on{background:var(--ambd);border-color:var(--ambb)}
+.grab{width:36px;height:5px;border-radius:3px;background:rgba(235,235,245,.3);margin:7px auto 0}
+.sh-head{display:flex;align-items:center;justify-content:space-between;padding:8px 16px 6px;touch-action:none}
+.sh-ttl{font-size:17px;font-weight:800;letter-spacing:-.02em}
+.sh-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 16px calc(var(--sb) + 40px)}
+.sh-body>*{animation:fade .6s var(--spring) both}
+.sh-body>*:nth-child(2){animation-delay:25ms}.sh-body>*:nth-child(3){animation-delay:50ms}.sh-body>*:nth-child(4){animation-delay:75ms}.sh-body>*:nth-child(5){animation-delay:100ms}.sh-body>*:nth-child(n+6){animation-delay:125ms}
+.cbtn{width:44px;height:44px;border-radius:22px;display:flex;align-items:center;justify-content:center;background:var(--fill2);transition:background .35s var(--ease),color .35s,transform .5s var(--spring)}
+.cbtn:active{transform:scale(.88);transition-duration:.12s}
+.cbtn.dis{color:var(--t3)}
+.cbtn.ok{background:var(--ambd);box-shadow:inset 0 0 0 1px var(--ambb);color:var(--ambt)}
+.cbtn.pop{animation:pop .76s var(--bounce)}
+@keyframes pop{0%{transform:scale(.7)}100%{transform:scale(1)}}
+.sheet .day{background:var(--card2)}
+.sheet .days{margin-top:0}
 
-.seg{position:relative;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;height:32px;border-radius:16px;background:var(--s2);padding:2px}
-.seg .th{position:absolute;top:2px;bottom:2px;left:2px;border-radius:14px;background:#636366;box-shadow:0 3px 8px rgba(0,0,0,.25);transition:transform .45s var(--ease)}
-.seg button{position:relative;z-index:1;font-size:14px;font-weight:600}
-.lbl{font-size:15px;font-weight:600;color:var(--t2);margin:22px 4px 9px}
-
+.lbl{font-size:13px;font-weight:700;color:var(--t2);margin:22px 4px 9px;text-transform:uppercase;letter-spacing:.03em}
 .slots{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.slot{height:50px;border-radius:14px;background:var(--s2);display:flex;flex-direction:column;align-items:center;justify-content:center;font-variant-numeric:tabular-nums;transition:background .3s var(--ease),box-shadow .3s,color .3s,transform .25s var(--ease)}
-.slot b{font-size:16px;font-weight:600}
-.slot small{font-size:10.5px;color:var(--t3);margin-top:1px}
-.slot:not(:disabled):active{transform:scale(.92)}
+.slot{position:relative;height:54px;border-radius:16px;background:var(--card2);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:background .35s var(--ease),color .3s,transform .5s var(--spring)}
+.slot b{font-size:16.5px;font-weight:800;letter-spacing:-.02em}
+.slot small{font-size:10.5px;font-weight:700;color:var(--t3);margin-top:1px}
+.slot:not(:disabled):active{transform:scale(.9);transition-duration:.12s}
 .slot.on{background:var(--ambd);box-shadow:inset 0 0 0 1px var(--ambb);color:var(--ambt)}
-.slot.busy{background:transparent;box-shadow:inset 0 0 0 1px var(--line);color:var(--t3)}
-.slot.busy b{font-size:15px;text-decoration:line-through}
-.slot.gone{background:transparent;color:#3A3A3C}
-.warn{min-height:0;overflow:hidden;color:#FF6961;font-size:14px;margin:0 4px;transition:margin .3s var(--ease)}
-.warn:not(:empty){margin-top:10px;animation:fade .3s var(--ease)}
+.slot.on small{color:#FFE2B8}
+.slot.busy{background:transparent;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07);color:var(--t3)}
+.slot.busy b{font-size:15px;text-decoration:line-through;text-decoration-thickness:1.5px}
+.slot.pst:not(.on){color:var(--t2)}
+.warn{color:#FF6961;font-size:14px;font-weight:700;margin:0 4px}
+.warn:not(:empty){margin-top:12px;animation:fade .4s var(--spring)}
+.note{font-size:13.5px;font-weight:700;color:var(--amb);margin:10px 4px 0}
+.note:empty{display:none}
 
-.grp{background:var(--s2);border-radius:20px;overflow:hidden}
-.row{display:flex;align-items:center;min-height:50px;padding:0 16px;gap:12px;font-size:16px}
-.row input{flex:1;min-width:0;border:0;outline:0;background:none;font-size:16px;padding:14px 0}
-.row .v{margin-left:auto;color:var(--t2)}
+.grp{background:var(--card2);border-radius:20px;overflow:hidden}
+.row{display:flex;align-items:center;min-height:52px;padding:0 16px;gap:12px;font-size:16px;font-weight:600;width:100%;text-align:left}
+.row input{flex:1;min-width:0;border:0;outline:0;background:none;font-size:16px;font-weight:600;padding:15px 0}
+.row .v{margin-left:auto;color:var(--t2);font-weight:600}
+.row .k{width:92px;flex-shrink:0;color:var(--t2)}
 .sep{height:.5px;background:var(--sep);margin-left:16px}
-.chips{display:flex;gap:8px;overflow-x:auto;margin:10px -18px 0;padding:0 18px;scrollbar-width:none}
+.chips{display:flex;gap:8px;overflow-x:auto;margin:10px -16px 0;padding:0 16px;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
-.chip{flex:0 0 auto;height:34px;padding:0 14px;border-radius:17px;background:var(--s2);font-size:15px;transition:transform .25s var(--ease),background .25s}
-.chip:active{transform:scale(.92);background:#3A3A3C}
-.danger{width:100%;height:50px;border-radius:16px;background:var(--s2);color:var(--red);font-size:16px;font-weight:600;margin-top:26px}
-.big{width:100%;height:50px;border-radius:16px;background:var(--ambd);border:1px solid var(--ambb);color:var(--ambt);font-size:16px;font-weight:600}
-.big.alt{background:var(--s2);border-color:var(--sep);color:#fff}
-
-.hdr{font-size:13px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.02em;margin:20px 6px 8px}
-.prow{display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 16px}
+.chip{flex:0 0 auto;height:38px;padding:0 15px;border-radius:19px;background:var(--card2);font-size:14.5px;font-weight:700;display:flex;align-items:center;gap:7px;transition:transform .5s var(--spring),background .25s;animation:fade .45s var(--spring) both}
+.chip:active{transform:scale(.9);background:#3A3A3C;transition-duration:.12s}
+.chip.on{background:var(--ambd);box-shadow:inset 0 0 0 1px var(--ambb);color:var(--ambt)}
+.chip .ava{margin-left:-9px}
+.danger{width:100%;height:54px;border-radius:18px;background:var(--card2);color:var(--red);font-size:16px;font-weight:700;margin-top:24px}
+.btn{width:100%;height:54px;border-radius:18px;background:var(--ambd);box-shadow:inset 0 0 0 1px var(--ambb);color:var(--ambt);font-size:16px;font-weight:800}
+.btn.alt{background:var(--card2);box-shadow:none;color:var(--t1)}
+.hdr{font-size:13px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.03em;margin:22px 6px 9px}
+.prow{display:flex;align-items:center;gap:12px;min-height:60px;padding:8px 14px 8px 10px;width:100%;text-align:left}
+.prow .ic{width:42px;height:42px;border-radius:13px}
 .prow .n{flex:1;min-width:0}
-.prow .n div{font-size:16px}.prow .n span{font-size:13px;color:var(--t2)}
+.prow .n div{font-size:16px;font-weight:700}.prow .n span{font-size:13px;font-weight:600;color:var(--t2)}
 
-.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}
-.tile{background:var(--s1);border:1px solid var(--chipb);border-radius:20px;padding:16px;animation:up .5s var(--ease) both;animation-delay:calc(var(--i) * 50ms)}
-.tile b{display:block;font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
-.tile span{font-size:13px;color:var(--t2)}
+/* ===== ученики ===== */
+.shero{display:flex;flex-direction:column;align-items:center;padding:4px 0 2px}
+.shero .big{margin-top:0}
+.alert{margin-top:16px;border-radius:22px;padding:14px 16px;background:rgba(244,167,59,.12);display:flex;align-items:center;gap:12px;animation:up .7s var(--spring) both;animation-delay:120ms;width:100%;text-align:left}
+.alert b{font-size:15px;font-weight:800;color:#FFCF8A}.alert span{display:block;font-size:13.5px;font-weight:600;color:rgba(255,207,138,.7);margin-top:1px}
+.sgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
+.stile{position:relative;border-radius:26px;background:var(--card);padding:14px;display:flex;flex-direction:column;align-items:flex-start;text-align:left;min-height:170px;animation:up .7s var(--spring) both;animation-delay:calc(var(--i) * 45ms + 100ms);transition:transform .5s var(--spring)}
+.stile:active{transform:scale(.96);transition-duration:.12s}
+.stile .tr{display:flex;align-items:flex-start;justify-content:space-between;width:100%}
+.stile .nm2{margin-top:auto;width:100%}
+.stile .nm2 b{display:block;font-size:17px;font-weight:800;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stile .nm2 span{display:block;font-size:13px;font-weight:600;color:var(--t2);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stile .nx{display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:700;color:var(--t3);margin-top:8px;white-space:nowrap;overflow:hidden}
+.stile .nx.soon{color:var(--amb)}
+.ava{position:relative;width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;flex-shrink:0;letter-spacing:0;overflow:hidden}
+.ava img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .4s}
+.ava img.ok{opacity:1}
+.ring{position:relative;flex-shrink:0}
+.ring svg{transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:4.5;stroke-linecap:round}
+.ring .bgc{stroke:rgba(255,255,255,.08)}
+.ring .fg{transition:stroke-dashoffset 1.1s var(--spring)}
+.ring b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800}
+.badge{height:28px;padding:0 11px;border-radius:14px;display:flex;align-items:center;font-size:12.5px;font-weight:800;background:var(--fill2);color:var(--t2)}
 
-.toast{position:fixed;left:50%;top:calc(var(--st) + 10px);z-index:40;transform:translate(-50%,-160%);padding:11px 18px;border-radius:22px;font-size:14px;font-weight:500;white-space:nowrap;transition:transform .5s var(--ease)}
+.phero{display:flex;flex-direction:column;align-items:center;padding:4px 0 2px}
+.phero h2{margin:12px 0 0;font-size:26px;font-weight:800;letter-spacing:-.035em;text-align:center}
+.phero .sub{font-size:14.5px;font-weight:600;color:var(--t2);margin-top:3px}
+.acts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:18px}
+.act{height:68px;border-radius:20px;background:var(--card2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-size:12.5px;font-weight:700;color:var(--t1)}
+.act svg{color:var(--amb)}
+.act.tg svg{color:#2AABEE}
+.counter{display:flex;align-items:center;justify-content:space-between;background:var(--card2);border-radius:22px;padding:14px}
+.counter .c{display:flex;flex-direction:column;align-items:center;flex:1}
+.counter .c b{font-size:46px;font-weight:800;letter-spacing:-.05em;line-height:50px}
+.counter .c b.bump{animation:pop .7s var(--bounce)}
+.counter .c span{font-size:13px;font-weight:600;color:var(--t2)}
+.stp{width:52px;height:52px;border-radius:26px;display:flex;align-items:center;justify-content:center;background:var(--fill2)}
+.dots{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px}
+.dots i{width:9px;height:9px;border-radius:5px;background:rgba(255,255,255,.1);transition:background .5s var(--ease)}
+.dots i.f{background:var(--amb)}
+.stats3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.stats3 div{background:var(--card2);border-radius:18px;padding:12px 13px}
+.stats3 b{display:block;font-size:20px;font-weight:800;letter-spacing:-.03em}.stats3 span{font-size:12px;font-weight:600;color:var(--t2)}
+.stepper{display:flex;align-items:center;gap:6px;margin-left:auto}
+.stepper button{width:34px;height:34px;border-radius:17px;background:var(--fill);display:flex;align-items:center;justify-content:center}
+.stepper b{min-width:30px;text-align:center;font-size:17px;font-weight:800}
+
+.toast{position:fixed;left:50%;top:calc(var(--st) + 8px);z-index:40;transform:translate(-50%,-160%);padding:13px 20px;border-radius:24px;font-size:14.5px;font-weight:700;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis;transition:transform .76s var(--bounce);background:rgba(44,44,46,.82)}
 .toast.on{transform:translate(-50%,0)}
 
-.onb{position:fixed;inset:0;z-index:30;background:var(--bg);display:flex;flex-direction:column;justify-content:center;padding:calc(var(--st) + 20px) 22px calc(var(--sb) + 30px);transition:opacity .5s var(--ease),transform .5s var(--ease)}
+.onb{position:fixed;inset:0;z-index:30;background:var(--bg);display:flex;flex-direction:column;justify-content:center;padding:calc(var(--st) + 20px) 20px calc(var(--sb) + 30px);transition:opacity .6s var(--ease),transform .64s var(--spring)}
 .onb.away{opacity:0;transform:scale(1.04);pointer-events:none}
-.onb h1{font-size:30px;font-weight:700;margin:0 0 6px}
-.onb p{margin:0 0 26px;color:var(--t2);font-size:16px;line-height:1.4}
+.onb>*{animation:fade .8s var(--spring) both}
+.onb>*:nth-child(2){animation-delay:60ms}.onb>*:nth-child(3){animation-delay:120ms}.onb>*:nth-child(4){animation-delay:180ms}.onb>*:nth-child(n+5){animation-delay:240ms}
+.onb .logo{width:64px;height:64px;border-radius:20px;background:rgba(244,167,59,.18);color:var(--amb);display:flex;align-items:center;justify-content:center;margin-bottom:22px}
+.onb h1{font-size:34px;font-weight:800;letter-spacing:-.04em;margin:0 0 8px}
+.onb p{margin:0 0 24px;color:var(--t2);font-size:16px;font-weight:600;line-height:1.45}
 
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition-duration:.01ms!important}}
 </style>
@@ -168,43 +276,52 @@ body.sheet-open .sheet{transform:none}
 <div class="app" id="app">
   <header class="top" id="top">
     <div class="bar">
-      <div class="pill glass">
-        <button class="press" id="bPeople" aria-label="Люди">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M7 2.5h10M6 4.8h12"/><rect x="4" y="7" width="16" height="14.5" rx="2.5"/><circle cx="12" cy="12.6" r="2.4"/><path d="M7.8 21.3c.6-2.6 2.3-3.9 4.2-3.9s3.6 1.3 4.2 3.9"/></svg>
-        </button>
-        <button class="press" id="bHist" aria-label="История">
-          <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 20.8A9 9 0 1 1 21 11"/><path d="M12 7v5h-3.5"/><circle cx="18.5" cy="18.5" r="4" fill="currentColor" stroke="none"/><path d="M16.7 18.6l1.2 1.2 2.3-2.4" stroke="#000" stroke-width="1.5"/></svg>
-        </button>
+      <div class="who glass">
+        <span class="tile"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3.5"/><path d="M3.5 10h17M8.5 3v4M15.5 3v4"/></svg></span>
+        <div><b>Расписание</b><span id="whoSub">Сегодня свободно</span></div>
       </div>
-      <div class="ttl">Расписание</div>
-      <div class="rgt">
-        <button class="circ glass press" id="bCal" aria-label="Выбрать дату">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2.5" y="4" width="19" height="16" rx="3"/><path d="M2.5 8.5h19" stroke-width="2.2"/><g fill="currentColor" stroke="none"><circle cx="8" cy="12" r="1"/><circle cx="11" cy="12" r="1"/><circle cx="14" cy="12" r="1"/><circle cx="17" cy="12" r="1"/><circle cx="7" cy="15.5" r="1"/><circle cx="10" cy="15.5" r="1"/><circle cx="13" cy="15.5" r="1"/><circle cx="16" cy="15.5" r="1"/></g></svg>
-        </button>
-        <button class="circ glass press" id="bAdd" aria-label="Новая запись">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4v16M4 12h16"/></svg>
-        </button>
+      <div class="grpb glass">
+        <button class="tap" id="bHist" aria-label="История"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.8 12a8.2 8.2 0 1 0 2.5-5.9"/><path d="M3.6 4.2v4.1h4.1"/><path d="M12 7.6V12l3 1.9"/></svg></button>
+        <label class="tap" aria-label="Выбрать дату"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3.5"/><path d="M3.5 10h17M8.5 3v4M15.5 3v4"/></svg><input type="date" class="ovl" id="pickDate"></label>
       </div>
+      <button class="circ glass tap" id="bAdd" aria-label="Новая запись"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
     </div>
-    <div class="days" id="days"></div>
   </header>
 
-  <main class="page on" id="pList"><div class="list" id="list"></div></main>
-  <main class="page plain" id="pStats"></main>
+  <main class="page plain" id="pStu"></main>
+  <main class="page on" id="pList">
+    <section class="hero">
+      <div class="hrow"><span>Записи на</span>
+        <div class="dpill glass">
+          <button class="tap" id="dPrev" aria-label="Предыдущий день"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <div class="lab" id="dLab"><i>Сегодня</i></div>
+          <button class="tap" id="dNext" aria-label="Следующий день"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+        </div>
+        <button class="reset off tap" id="dReset" aria-label="Вернуться на сегодня"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 4v4.5h-4.5"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/></svg></button>
+      </div>
+      <div class="big"><b id="hNum">0</b><span id="hWord">записей</span></div>
+      <div class="kinds">
+        <div><i style="background:var(--blueT);color:var(--blue)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5C7 4.5 9.8 4.8 12 6.4v13c-2.2-1.6-5-1.9-8-.9z"/><path d="M20 5.5c-3-1-5.8-.7-8 .9v13c2.2-1.6 5-1.9 8-.9z"/></svg></i><span id="hL">0 уроков</span></div>
+        <div><i style="background:var(--ambT);color:var(--amb)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="13" height="12" rx="3"/><path d="M15.5 10.5l6-3.5v10l-6-3.5"/></svg></i><span id="hC">0 созвонов</span></div>
+      </div>
+    </section>
+    <div class="days" id="days"></div>
+    <div class="list" id="list"></div>
+  </main>
   <main class="page plain" id="pSet"></main>
 
   <nav class="tabs glass" id="tabs">
-    <i class="thumb" id="thumb"></i>
-    <button class="tab" data-t="stats">
-      <svg width="24" height="20" viewBox="0 0 24 20" fill="currentColor"><rect x="3" y="6" width="3.2" height="11" rx="1.2"/><rect x="7.6" y="3" width="3.2" height="14" rx="1.2"/><rect x="12.2" y="1" width="3.2" height="16" rx="1.2"/><rect x="16.8" y="7" width="3.2" height="10" rx="1.2"/><rect x="2" y="17.8" width="19" height="1.6" rx=".8"/></svg>
-      <span>Статистика</span>
+    <i class="drop"></i>
+    <button class="tab" data-v="stu">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="9.5" cy="8" r="3.6"/><path d="M3 19.5c.6-3.6 3.2-5.6 6.5-5.6s5.9 2 6.5 5.6"/><path d="M16 4.6a3.4 3.4 0 0 1 0 6.6M18 14.2c1.8.6 3 2.3 3.4 5.3"/></svg>
+      <span>Ученики</span>
     </button>
-    <button class="tab on" data-t="list">
-      <svg width="22" height="20" viewBox="0 0 22 20" fill="currentColor"><path d="M1 2.5C4.5 1.5 7.8 1.8 10.3 3.6v15.2C7.8 17 4.5 16.7 1 17.7z"/><path d="M21 2.5C17.5 1.5 14.2 1.8 11.7 3.6v15.2c2.5-1.8 5.8-2.1 9.3-1.1z"/></svg>
+    <button class="tab on" data-v="list">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3.5"/><path d="M3.5 10h17M8.5 3v4M15.5 3v4M8 14h3"/></svg>
       <span>Записи</span>
     </button>
-    <button class="tab" data-t="set">
-      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5l1.6 2.3 2.7-.8.4 2.8 2.7.9-.9 2.7 2.3 1.6-2.3 1.6.9 2.7-2.7.9-.4 2.8-2.7-.8L12 21.5l-1.6-2.3-2.7.8-.4-2.8-2.7-.9.9-2.7L3.2 12l2.3-1.6-.9-2.7 2.7-.9.4-2.8 2.7.8z"/></svg>
+    <button class="tab" data-v="set">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
       <span>Настройки</span>
     </button>
   </nav>
@@ -214,23 +331,34 @@ body.sheet-open .sheet{transform:none}
 <section class="sheet" id="sheet" role="dialog" aria-modal="true"></section>
 <div class="toast glass" id="toast"></div>
 <div class="onb away" id="onb"></div>
-<input type="date" class="hid" id="pickDate" aria-hidden="true" tabindex="-1">
-<input type="time" class="hid" id="pickTime" step="300" aria-hidden="true" tabindex="-1">
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
 <script>
-/* ===== НАСТРОЙКА: вставь сюда данные своего Supabase (Project Settings → API) ===== */
-const CONFIG = {
-  url: 'https://imkezawbhqbvtlthsvqx.supabase.co',   // например 'https://abcdxyz.supabase.co'
-  key: 'sb_publishable_tFmZW_xFlMZyFQHhS5HR6Q_0ofOGNSh'    // anon public key
-};
-/* ================================================================================== */
+/* Ключи Supabase лежат в config.js (window.RS_CONFIG). Этот файл обновляй смело, ключи не потеряются. */
+const CONFIG = window.RS_CONFIG || { url: '', key: '' };
 
-const TABLE = 'sched_entries';
+const T_E = 'sched_entries', T_S = 'sched_students';
 const KIND = { lesson: 'Урок', call: 'Созвон' };
 const WD = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
 const WDL = ['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
+const MON = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
 const SLOTS = []; for (let h = 8; h <= 22; h++) SLOTS.push(h * 60);
+const AV = [['#1E2A44','#8FB4FF'],['#1D3326','#7FD69A'],['#3D2A22','#FFAE8A'],['#33263F','#C9A2FF'],['#1B3239','#7FD0E6'],['#3A3520','#E6D27A'],['#3D2235','#FF9FCB']];
+const SPRING = (() => { try { const v = getComputedStyle(document.documentElement).getPropertyValue('--spring').trim(); return CSS.supports('transition-timing-function', v) ? v : 'cubic-bezier(.32,.72,0,1)'; } catch (e) { return 'cubic-bezier(.32,.72,0,1)'; } })();
+
+const ICO = {
+  lesson: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5C7 4.5 9.8 4.8 12 6.4v13c-2.2-1.6-5-1.9-8-.9z"/><path d="M20 5.5c-3-1-5.8-.7-8 .9v13c2.2-1.6 5-1.9 8-.9z"/></svg>`,
+  call: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="13" height="12" rx="3"/><path d="M15.5 10.5l6-3.5v10l-6-3.5"/></svg>`,
+  x: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5.5 5.5l13 13M18.5 5.5l-13 13"/></svg>',
+  ok: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5L19.5 7"/></svg>',
+  plus: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  minus: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/></svg>',
+  tg: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="currentColor"><path d="M21.4 4.3 2.9 11.4c-1.3.5-1.2 1.2-.2 1.5l4.7 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.4l2.3-2.2 4.7 3.5c.9.5 1.5.2 1.7-.8l3.1-14.5c.3-1.3-.5-1.8-1.4-1.1zM9.8 14.2l-.4 4-1.6-5 9.6-6.1z"/></svg>`,
+  cal: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3.5"/><path d="M3.5 10h17M8.5 3v4M15.5 3v4"/></svg>`,
+  check: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.3l2.7 2.7L16.2 9.5"/></svg>`,
+  clock: s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>`
+};
 
 const $ = (s, r = document) => r.querySelector(s);
 const pad = n => String(n).padStart(2, '0');
@@ -241,20 +369,34 @@ const hm = m => pad(Math.floor(m / 60)) + ':' + pad(m % 60);
 const today = () => ymd(new Date());
 const nowMin = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const vib = () => { try { navigator.vibrate && navigator.vibrate(8); } catch (e) {} };
+const vib = (n = 8) => { try { navigator.vibrate && navigator.vibrate(n); } catch (e) {} };
 const LS = k => { try { return JSON.parse(localStorage.getItem('rs_' + k)); } catch (e) { return null; } };
 const SS = (k, v) => { try { localStorage.setItem('rs_' + k, JSON.stringify(v)); } catch (e) {} };
 const uid = () => (crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16); }));
 const genCode = () => { const a = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; const b = new Uint8Array(8); crypto.getRandomValues(b); return [...b].map(x => a[x % a.length]).join(''); };
-const dayLbl = s => { const d = pd(s); return { w: s === today() ? 'Сегодня' : WD[d.getDay()], n: pad(d.getDate()) + '.' + pad(d.getMonth() + 1) }; };
+const dd = s => { const d = pd(s); return pad(d.getDate()) + '.' + pad(d.getMonth() + 1); };
+const longDay = s => { const d = pd(s); return d.getDate() + ' ' + MON[d.getMonth()]; };
+const relDay = s => { const t = today(); if (s === t) return 'сегодня'; if (s === addD(t, 1)) return 'завтра'; if (s === addD(t, -1)) return 'вчера'; if (s === addD(t, -2)) return 'позавчера'; return WD[pd(s).getDay()].toLowerCase() + ', ' + dd(s); };
+const cap = s => s ? s[0].toUpperCase() + s.slice(1) : s;
+const pillDay = s => { const t = today(); if (s === t) return 'Сегодня'; if (s === addD(t, 1)) return 'Завтра'; if (s === addD(t, -1)) return 'Вчера'; return WD[pd(s).getDay()] + ', ' + longDay(s); };
+const norm = s => String(s || '').trim().toLowerCase().replace(/ё/g, 'е');
+const plural = (n, a, b, c) => { n = Math.abs(n); const m10 = n % 10, m100 = n % 100; return m10 === 1 && m100 !== 11 ? a : m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20) ? b : c; };
+const initials = n => String(n).trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?';
+const avc = n => { let h = 0; for (const ch of norm(n)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return AV[h % AV.length]; };
+const ended = e => e.day < today() || (e.day === today() && e.start_min + e.dur_min <= nowMin());
+const money = v => (Number(v) || 0).toLocaleString('ru-RU');
+const tgNick = v => String(v || '').trim().replace(/^https?:\/\/t\.me\//i, '').replace(/^@/, '').replace(/[^\w]/g, '');
+const sortKey = e => e.day + hm(e.start_min);
+const durTxt = m => m === 60 ? '1 ч' : m === 90 ? '1,5 ч' : m === 120 ? '2 ч' : m + ' мин';
 
 let me = LS('me');
 let entries = LS('cache') || [];
+let students = LS('stu') || [];
 let sel = today();
 let tab = 'list';
 let sb = null, chan = null;
 
-/* ---------- данные ---------- */
+/* ================= данные ================= */
 const online = () => !!(CONFIG.url && CONFIG.key && window.supabase && me);
 async function connect() {
   if (!online()) return;
@@ -265,11 +407,15 @@ async function connect() {
 }
 async function pull() {
   if (!sb) return;
-  const { data, error } = await sb.from(TABLE).select('*').eq('pair', me.pair).order('day').order('start_min');
-  if (error) { toast('Нет связи с базой'); return; }
-  entries = data.map(r => ({ ...r, price: r.price == null ? '' : r.price }));
+  const [a, b] = await Promise.all([
+    sb.from(T_E).select('*').eq('pair', me.pair).order('day').order('start_min'),
+    sb.from(T_S).select('*').eq('pair', me.pair).order('name')
+  ]);
+  if (a.error) { toast('База: ' + a.error.message); return; }
+  entries = a.data.map(r => ({ ...r, price: r.price == null ? '' : r.price }));
   SS('cache', entries);
-  renderList(false); if (tab === 'stats') renderStats();
+  if (!b.error) { students = b.data.map(s => ({ ...s, prior: s.prior || 0, tg: s.tg || '' })); SS('stu', students); }
+  refreshAll(false);
 }
 const ping = () => { try { chan && chan.send({ type: 'broadcast', event: 'chg', payload: {} }); } catch (e) {} };
 async function saveEntry(e) {
@@ -277,62 +423,188 @@ async function saveEntry(e) {
   if (i >= 0) entries[i] = e; else entries.push(e);
   SS('cache', entries);
   if (sb) {
-    const row = { id: e.id, pair: me.pair, day: e.day, start_min: e.start_min, dur_min: e.dur_min, kind: e.kind, name: e.name, price: e.price === '' ? null : Number(e.price) };
-    const { error } = await sb.from(TABLE).upsert(row);
-    if (error) toast('Не сохранилось, проверь интернет'); else ping();
+    const { error } = await sb.from(T_E).upsert({ id: e.id, pair: me.pair, day: e.day, start_min: e.start_min, dur_min: e.dur_min, kind: e.kind, name: e.name, price: e.price === '' ? null : Number(e.price) });
+    if (error) toast('Не сохранилось: ' + error.message); else ping();
   }
 }
 async function delEntry(id) {
   entries = entries.filter(x => x.id !== id); SS('cache', entries);
-  if (sb) { const { error } = await sb.from(TABLE).delete().eq('id', id); if (error) toast('Не удалилось, проверь интернет'); else ping(); }
+  if (sb) { const { error } = await sb.from(T_E).delete().eq('id', id); if (error) toast('Не удалилось: ' + error.message); else ping(); }
+}
+async function saveStu(s) {
+  const i = students.findIndex(x => x.id === s.id);
+  if (i >= 0) students[i] = s; else students.push(s);
+  SS('stu', students);
+  if (sb) {
+    const { error } = await sb.from(T_S).upsert({ id: s.id, pair: me.pair, name: s.name, plan: s.plan, pkg_total: s.pkg_total, pkg_start: s.pkg_start, price: s.price === '' || s.price == null ? null : Number(s.price), prior: s.prior || 0, tg: s.tg || null });
+    if (error) toast('Ученик не сохранился: ' + error.message); else ping();
+  }
+}
+async function delStu(id) {
+  students = students.filter(x => x.id !== id); SS('stu', students);
+  if (sb) { const { error } = await sb.from(T_S).delete().eq('id', id); if (error) toast('Не удалилось: ' + error.message); else ping(); }
+}
+async function renameEntries(from, to) {
+  if (norm(from) === norm(to)) return;
+  entries.forEach(e => { if (norm(e.name) === norm(from)) e.name = to; }); SS('cache', entries);
+  if (sb) await sb.from(T_E).update({ name: to }).eq('pair', me.pair).eq('name', from);
 }
 const clash = (day, start, dur, ex) => entries.find(e => e.day === day && e.id !== ex && start < e.start_min + e.dur_min && e.start_min < start + dur);
+const stuOf = name => students.find(s => norm(s.name) === norm(name));
 
-/* ---------- полоса дней ---------- */
+function stuStats(s) {
+  const mine = entries.filter(e => e.kind === 'lesson' && norm(e.name) === norm(s.name));
+  const done = mine.filter(ended).sort((a, b) => sortKey(b).localeCompare(sortKey(a)));
+  const fut = mine.filter(e => !ended(e)).sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
+  let used = 0, left = null, planned = 0;
+  if (s.plan === 'pkg') {
+    used = done.filter(e => e.day >= (s.pkg_start || '0000')).length;
+    planned = fut.length;
+    left = (s.pkg_total || 0) - used;
+  }
+  return { total: done.length + (s.prior || 0), inApp: done.length, done, next: fut[0], last: done[0], used, left, planned };
+}
+
+/* ================= аватар: фото из Telegram, если ник указан ================= */
+function avaHTML(name, tg, size = 48) {
+  const [bg, fg] = avc(name || '?'); const n = tgNick(tg);
+  return `<span class="ava" style="width:${size}px;height:${size}px;font-size:${Math.round(size * .34)}px;background:${bg};color:${fg}">${esc(initials(name || '?'))}${n ? `<img alt="" src="https://t.me/i/userpic/320/${n}.jpg" onload="if(this.naturalWidth>8)this.classList.add('ok')" onerror="this.remove()">` : ''}</span>`;
+}
+
+/* ================= стеклянный переключатель: тап или вести пальцем ================= */
+function glassSwitch(el, value, onChange, opts = {}) {
+  const bs = [...el.querySelectorAll('button')], drop = $('.drop', el), n = bs.length;
+  const p0 = parseFloat(getComputedStyle(el).paddingLeft) || 3;
+  drop.style.width = `calc((100% - ${p0 * 2}px) / ${n})`;
+  let cur = Math.max(0, bs.findIndex(b => b.dataset.v === String(value)));
+  const light = i => bs.forEach((b, j) => b.classList.toggle('on', j === i));
+  const place = (i, anim = true) => { drop.style.transition = anim ? '' : 'none'; drop.style.transform = `translateX(${i * 100}%)`; light(i); };
+  place(cur, false);
+  let down = false, lifted = false, x0 = 0, lastX = 0, hold = null, hover = cur, w = 0, left = 0, pid = null;
+  const cwid = () => (w - p0 * 2) / n;
+  const at = x => Math.max(0, Math.min(n - 1, Math.floor((x - left) / cwid())));
+  const follow = x => {
+    const c = cwid(), v = x - lastX; lastX = x;
+    const pos = Math.max(-8, Math.min(w - p0 * 2 - c + 8, x - left - c / 2));
+    const stretch = 1 + Math.min(.16, Math.abs(v) / 40);
+    drop.style.transition = 'transform .14s cubic-bezier(.32,.72,0,1), background .35s, box-shadow .35s';
+    drop.style.transform = `translateX(${pos}px) scale(${1.12 * stretch}, 1.22)`;
+    const h = at(x); if (h !== hover) { hover = h; light(h); vib(4); }
+  };
+  const lift = x => { if (lifted) return; lifted = true; drop.classList.add('lift'); vib(10); follow(x); };
+  el.addEventListener('pointerdown', ev => {
+    down = true; lifted = false; x0 = lastX = ev.clientX; pid = ev.pointerId;
+    const r = el.getBoundingClientRect(); w = r.width; left = r.left + p0; hover = cur;
+    hold = setTimeout(() => { if (down) lift(lastX); }, 220);
+  });
+  el.addEventListener('pointermove', ev => {
+    if (!down) return;
+    if (!lifted && Math.abs(ev.clientX - x0) > 6) { if (opts.free || at(x0) === cur) { lift(ev.clientX); try { el.setPointerCapture(pid); } catch (e) {} } else { down = false; clearTimeout(hold); return; } }
+    if (lifted) follow(ev.clientX); else lastX = ev.clientX;
+  });
+  const end = ev => {
+    if (!down) return; down = false; clearTimeout(hold);
+    let i = cur;
+    if (lifted) i = hover; else { const b = ev.target.closest && ev.target.closest('button'); if (b && bs.includes(b)) i = bs.indexOf(b); }
+    drop.classList.remove('lift'); lifted = false;
+    place(i);
+    if (i !== cur) { cur = i; vib(); onChange(bs[i].dataset.v); } else if (opts.again) opts.again(bs[i].dataset.v);
+  };
+  el.addEventListener('pointerup', end);
+  el.addEventListener('pointercancel', () => { down = false; clearTimeout(hold); drop.classList.remove('lift'); lifted = false; place(cur); });
+  return { set: v => { const i = bs.findIndex(b => b.dataset.v === String(v)); if (i >= 0) { cur = i; place(i); } } };
+}
+const segHTML = (id, items) => `<div class="seg" id="${id}"><i class="drop"></i>${items.map(([v, l]) => `<button data-v="${v}">${l}</button>`).join('')}</div>`;
+
+/* ================= анимация чисел и подписи ================= */
+function rollNum(el, to) {
+  const from = +el.dataset.v || 0; el.dataset.v = to;
+  if (from === to) { el.textContent = to; return; }
+  const t0 = performance.now(), d = 520;
+  const f = t => { const k = Math.min(1, (t - t0) / d), e = 1 - Math.pow(1 - k, 4); el.textContent = Math.round(from + (to - from) * e); if (k < 1) requestAnimationFrame(f); };
+  requestAnimationFrame(f);
+}
+function swapLabel(box, text, dir) {
+  const olds = [...box.querySelectorAll('i')], old = olds[olds.length - 1];
+  if (old && old.textContent === text) return;
+  olds.slice(0, -1).forEach(o => o.remove());
+  const nu = document.createElement('i'); nu.textContent = text; box.appendChild(nu);
+  const dx = dir === 'inR' ? -1 : 1;
+  try {
+    nu.animate([{ transform: `translateX(${26 * dx}px)`, opacity: 0, filter: 'blur(3px)' }, { transform: 'none', opacity: 1, filter: 'blur(0)' }], { duration: 560, easing: SPRING });
+    if (old) { const a = old.animate([{ transform: 'none', opacity: 1 }, { transform: `translateX(${-26 * dx}px)`, opacity: 0, filter: 'blur(3px)' }], { duration: 260, easing: 'ease-in', fill: 'forwards' }); a.onfinish = () => old.remove(); }
+  } catch (e) { if (old) old.remove(); }
+}
+
+/* ================= полоса дней ================= */
 function renderDays(el, cur, pick) {
-  const t = today(); const start = cur < t ? cur : t;
+  const t = today(); const start = addD(cur < addD(t, -30) ? cur : t, -30);
+  const has = new Set(entries.map(e => e.day));
   let h = '';
-  for (let i = 0; i < 60; i++) {
-    const d = addD(start, i), l = dayLbl(d);
-    h += `<button class="day${d === cur ? ' on' : ''}${d === t ? ' today' : ''}" data-d="${d}"><small>${l.w}</small><b>${l.n}</b></button>`;
+  for (let i = 0; i < 130; i++) {
+    const d = addD(start, i);
+    h += `<button class="day${d === cur ? ' on' : ''}${d === t ? ' today' : ''}${d < t ? ' past' : ''}${has.has(d) ? ' has' : ''}" data-d="${d}"><small>${WD[pd(d).getDay()]}</small><b>${pd(d).getDate()}</b><i></i></button>`;
   }
   el.innerHTML = h;
   el.onclick = ev => { const b = ev.target.closest('.day'); if (!b) return; vib(); pick(b.dataset.d); };
   const on = el.querySelector('.on');
-  if (on) requestAnimationFrame(() => { el.scrollTo({ left: Math.max(0, on.offsetLeft - 18), behavior: 'auto' }); });
+  if (on) requestAnimationFrame(() => { el.scrollLeft = Math.max(0, on.offsetLeft - el.clientWidth / 2 + on.offsetWidth / 2); });
 }
 function markDay(el, d) {
   el.querySelectorAll('.day').forEach(b => b.classList.toggle('on', b.dataset.d === d));
-  const on = el.querySelector('.on');
-  if (on) el.scrollTo({ left: Math.max(0, on.offsetLeft - el.clientWidth / 2 + 30), behavior: 'smooth' });
-  else return false;
+  const on = el.querySelector('.on'); if (!on) return false;
+  el.scrollTo({ left: Math.max(0, on.offsetLeft - el.clientWidth / 2 + on.offsetWidth / 2), behavior: 'smooth' });
   return true;
 }
+function markHas() { const has = new Set(entries.map(e => e.day)); document.querySelectorAll('#days .day').forEach(b => b.classList.toggle('has', has.has(b.dataset.d))); }
 function selectDay(d) {
   if (d === sel) return;
-  const dir = d > sel ? 'inL' : 'inR';
-  sel = d;
+  const dir = d > sel ? 'inL' : 'inR'; sel = d;
   if (!markDay($('#days'), d)) renderDays($('#days'), sel, selectDay);
-  renderList(true, dir);
+  renderHero(dir); renderList(true, dir);
+}
+$('#dPrev').onclick = () => { vib(); selectDay(addD(sel, -1)); };
+$('#dNext').onclick = () => { vib(); selectDay(addD(sel, 1)); };
+$('#dReset').onclick = () => { vib(12); selectDay(today()); };
+$('#dLab').onclick = () => { if (sel !== today()) { vib(12); selectDay(today()); } };
+
+/* ================= герой ================= */
+function renderHero(dir) {
+  const items = entries.filter(e => e.day === sel);
+  const L = items.filter(e => e.kind === 'lesson').length, C = items.length - L;
+  swapLabel($('#dLab'), pillDay(sel), dir);
+  rollNum($('#hNum'), items.length);
+  $('#hWord').textContent = plural(items.length, 'запись', 'записи', 'записей');
+  $('#hL').textContent = L + ' ' + plural(L, 'урок', 'урока', 'уроков');
+  $('#hC').textContent = C + ' ' + plural(C, 'созвон', 'созвона', 'созвонов');
+  $('#dReset').classList.toggle('off', sel === today());
+  const t = today(), nm = nowMin();
+  const nx = entries.filter(e => e.day === t && e.start_min + e.dur_min > nm).sort((a, b) => a.start_min - b.start_min)[0];
+  $('#whoSub').textContent = nx ? (nx.start_min <= nm ? `Сейчас: ${nx.name}` : `Дальше: ${hm(nx.start_min)} ${nx.name}`) : 'Сегодня больше ничего';
 }
 
-/* ---------- список ---------- */
-const ICAL = '<svg width="31" height="26" viewBox="0 0 31 26" fill="none"><rect x="1" y="1" width="25" height="21" rx="4" stroke="#8E8E93" stroke-width="1.6"/><path d="M1 6.5h25" stroke="#8E8E93" stroke-width="2.6"/><g fill="#8E8E93"><circle cx="7" cy="11" r="1"/><circle cx="10.5" cy="11" r="1"/><circle cx="14" cy="11" r="1"/><circle cx="17.5" cy="11" r="1"/><circle cx="7" cy="15" r="1"/><circle cx="10.5" cy="15" r="1"/><circle cx="14" cy="15" r="1"/></g><circle cx="24" cy="19" r="6" fill="#8E8E93" stroke="#000" stroke-width="1.5"/><path d="M24 16.2v5.6M21.2 19h5.6" stroke="#000" stroke-width="1.5" stroke-linecap="round"/></svg>';
+/* ================= список ================= */
 let fresh = null;
 function cardHTML(e, i, anim) {
-  const past = e.day < today() || (e.day === today() && e.start_min + e.dur_min <= nowMin());
-  return `<div class="cw${past ? ' past' : ''}${anim || e.id === fresh ? ' enter' : ''}" style="--i:${i}" data-id="${e.id}">
+  const st = e.kind === 'lesson' ? stuOf(e.name) : null;
+  const t = today(), nm = nowMin();
+  let sub = KIND[e.kind] + ' · до ' + hm(e.start_min + e.dur_min);
+  if (e.day === t && e.start_min <= nm && e.start_min + e.dur_min > nm) sub = '<em>Идет сейчас</em> · до ' + hm(e.start_min + e.dur_min);
+  else if (e.day === t && e.start_min > nm && e.start_min - nm <= 120) { const m = e.start_min - nm; sub = `<em>Через ${m < 60 ? m + ' мин' : Math.floor(m / 60) + ' ч' + (m % 60 ? ' ' + (m % 60) + ' мин' : '')}</em> · ${KIND[e.kind].toLowerCase()}`; }
+  else if (st && st.plan === 'pkg') { const x = stuStats(st); sub = `Абонемент · осталось ${Math.max(0, x.left)}`; }
+  return `<div class="cw${ended(e) ? ' past' : ''}${anim ? ' enter' : ''}${e.id === fresh ? ' enter fresh' : ''}" style="--i:${i}" data-id="${e.id}">
     <div class="del">Удалить</div>
-    <div class="card"><span class="tm"><b>${hm(e.start_min)}</b><span>${hm(e.start_min + e.dur_min)}</span></span>
-    <span class="nm">${esc(e.name)}</span><span class="tag ${e.kind}">${KIND[e.kind]}</span></div></div>`;
+    <div class="card"><span class="ic ${e.kind}">${ICO[e.kind](24)}</span>
+    <span class="nm"><b>${esc(e.name)}</b><span>${sub}</span></span>
+    <span class="rt"><b>${hm(e.start_min)}</b><span>${durTxt(e.dur_min)}</span></span></div></div>`;
 }
 function renderList(anim, dir) {
   const list = $('#list');
   const items = entries.filter(e => e.day === sel).sort((a, b) => a.start_min - b.start_min);
   if (!items.length) {
-    const d = pd(sel);
-    list.innerHTML = `<div class="empty">${ICAL}<b>Записей нет</b><span>${sel === today() ? 'Сегодня' : WDL[d.getDay()][0].toUpperCase() + WDL[d.getDay()].slice(1)} свободен у обоих.</span>
-      <button class="addbtn press" id="emptyAdd"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 4v16M4 12h16"/></svg>Добавить запись</button></div>`;
+    const sub = sel < today() ? 'Ничего не записано. Если занятие было, его можно добавить задним числом.' : 'День свободен у обоих. Ставь что угодно.';
+    list.innerHTML = `<div class="empty"><span class="ic call" style="width:64px;height:64px;border-radius:20px">${ICO.cal(28)}</span><b>Записей нет</b><span>${sub}</span>
+      <button class="addbtn tap" id="emptyAdd">${ICO.plus}Добавить запись</button></div>`;
     $('#emptyAdd').onclick = () => openEditor();
   } else {
     list.innerHTML = items.map((e, i) => cardHTML(e, i, anim && !dir)).join('');
@@ -347,29 +619,29 @@ function bindCard(cw) {
   let x0, y0, dx = 0, lock = null, down = false, open = false;
   const set = (x, anim) => { card.style.transition = anim ? '' : 'none'; card.style.transform = x ? `translateX(${x}px)` : ''; cw.classList.toggle('sw', x < 0); };
   const close = () => { open = false; set(0, true); };
-  card.addEventListener('pointerdown', ev => { down = true; lock = null; dx = 0; x0 = ev.clientX; y0 = ev.clientY; });
+  card.addEventListener('pointerdown', ev => { down = true; lock = null; dx = 0; x0 = ev.clientX; y0 = ev.clientY; if (!open) { card.style.transition = 'transform .15s'; card.style.transform = 'scale(.98)'; } });
   card.addEventListener('pointermove', ev => {
     if (!down) return;
     const mx = ev.clientX - x0, my = ev.clientY - y0;
-    if (lock === null && (Math.abs(mx) > 8 || Math.abs(my) > 8)) { lock = Math.abs(mx) > Math.abs(my) ? 'x' : 'y'; if (lock === 'x' && openCard && openCard.el !== cw) openCard.close(); }
-    if (lock === 'x') { dx = Math.min(0, (open ? -90 : 0) + mx); if (dx < -90) dx = -90 + (dx + 90) * .3; set(dx, false); }
+    if (lock === null && (Math.abs(mx) > 8 || Math.abs(my) > 8)) { lock = Math.abs(mx) > Math.abs(my) ? 'x' : 'y'; if (lock === 'y') set(open ? -96 : 0, true); if (lock === 'x' && openCard && openCard.el !== cw) { openCard.close(); openCard = null; } }
+    if (lock === 'x') { dx = Math.min(0, (open ? -96 : 0) + mx); if (dx < -96) dx = -96 + (dx + 96) * .25; set(dx, false); }
   });
-  const up = () => {
+  card.addEventListener('pointerup', () => {
     if (!down) return; down = false;
-    if (lock === 'x') { open = dx < -45; set(open ? -90 : 0, true); if (open) { vib(); openCard = { el: cw, close }; } }
-    else if (lock === null) { if (open) close(); else if (openCard) { openCard.close(); openCard = null; } else openEditor(entries.find(e => e.id === id)); }
-  };
-  card.addEventListener('pointerup', up);
-  card.addEventListener('pointercancel', () => { down = false; set(open ? -90 : 0, true); });
+    if (lock === 'x') { open = dx < -48; set(open ? -96 : 0, true); if (open) { vib(); openCard = { el: cw, close }; } }
+    else if (lock === null) { set(open ? -96 : 0, true); if (open) close(); else if (openCard) { openCard.close(); openCard = null; } else openEditor(entries.find(e => e.id === id)); }
+  });
+  card.addEventListener('pointercancel', () => { down = false; set(open ? -96 : 0, true); });
   $('.del', cw).onclick = () => {
-    vib(); openCard = null;
+    vib(14); openCard = null;
     const h = cw.offsetHeight;
-    const a = cw.animate([{ height: h + 'px', opacity: 1, marginBottom: '0px' }, { height: '0px', opacity: 0, marginBottom: '-10px' }], { duration: 320, easing: 'cubic-bezier(.32,.72,0,1)' });
-    a.onfinish = () => { delEntry(id).then(() => renderList(false)); };
+    const a = cw.animate([{ height: h + 'px', opacity: 1, marginBottom: '0px' }, { height: '0px', opacity: 0, marginBottom: '-8px' }], { duration: 380, easing: 'cubic-bezier(.32,.72,0,1)' });
+    a.onfinish = () => { delEntry(id).then(() => refreshAll(false)); };
   };
 }
+function refreshAll(anim) { renderHero(); renderList(anim); markHas(); if (tab === 'stu') renderStu(false); }
 
-/* ---------- шторка ---------- */
+/* ================= шторка ================= */
 const sheet = $('#sheet');
 function openSheet(html) {
   sheet.innerHTML = '<div class="grab"></div>' + html;
@@ -377,238 +649,316 @@ function openSheet(html) {
   requestAnimationFrame(() => document.body.classList.add('sheet-open'));
   vib(); bindDrag();
 }
-function closeSheet() { document.activeElement && document.activeElement.blur(); document.body.classList.remove('sheet-open'); }
+function closeSheet() { document.activeElement && document.activeElement.blur && document.activeElement.blur(); document.body.classList.remove('sheet-open'); }
 $('#scrim').onclick = closeSheet;
 function bindDrag() {
   const head = $('.sh-head', sheet); if (!head) return;
-  let y0, dy = 0, down = false;
-  head.addEventListener('pointerdown', ev => { if (ev.target.closest('button')) return; down = true; y0 = ev.clientY; dy = 0; sheet.style.transition = 'none'; });
-  window.onpointermove = ev => { if (!down) return; dy = Math.max(0, ev.clientY - y0); sheet.style.transform = `translateY(${dy}px)`; };
-  window.onpointerup = () => { if (!down) return; down = false; sheet.style.transition = ''; sheet.style.transform = ''; if (dy > 110) closeSheet(); };
+  let y0, dy = 0, down = false, t0 = 0;
+  head.addEventListener('pointerdown', ev => { if (ev.target.closest('button,label,a')) return; down = true; y0 = ev.clientY; dy = 0; t0 = Date.now(); sheet.style.transition = 'none'; });
+  window.onpointermove = ev => { if (!down) return; const d = ev.clientY - y0; dy = d > 0 ? d : d * .15; sheet.style.transform = `translateY(${dy}px)`; };
+  window.onpointerup = () => { if (!down) return; down = false; const v = dy / Math.max(1, Date.now() - t0); sheet.style.transition = ''; sheet.style.transform = ''; if (dy > 120 || v > .55) closeSheet(); };
 }
 function head(title, ok) {
-  return `<div class="sh-head"><button class="cbtn" id="shX" aria-label="Закрыть"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 4l16 16M20 4L4 20"/></svg></button>
-  <div class="sh-ttl">${title}</div>${ok ? `<button class="cbtn dis" id="shOk" aria-label="Сохранить"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12.5l5.5 6L20.5 4.5"/></svg></button>` : '<span style="width:40px"></span>'}</div>`;
+  return `<div class="sh-head"><button class="cbtn" id="shX" aria-label="Закрыть">${ICO.x}</button>
+  <div class="sh-ttl" id="shT">${title}</div>${ok ? `<button class="cbtn dis" id="shOk" aria-label="Сохранить">${ICO.ok}</button>` : '<span style="width:44px"></span>'}</div>`;
 }
-function seg(el, val, on) {
-  const bs = [...el.querySelectorAll('button')], th = $('.th', el);
-  th.style.width = `calc((100% - 4px) / ${bs.length})`;
-  const set = v => { const i = bs.findIndex(b => b.dataset.v === String(v)); th.style.transform = `translateX(${i * 100}%)`; };
-  set(val);
-  bs.forEach(b => b.onclick = () => { set(b.dataset.v); vib(); on(b.dataset.v); });
-}
+function later(fn) { closeSheet(); setTimeout(fn, 420); }
 
-/* ---------- новая запись / редактирование ---------- */
+/* ================= новая запись ================= */
 let F = null;
-function openEditor(e, preset) {
+function openEditor(e, preset = {}) {
   F = e ? { id: e.id, kind: e.kind, day: e.day, start: e.start_min, dur: e.dur_min, name: e.name, price: e.price ?? '', edit: true }
-        : { id: null, kind: (me && me.role) || 'lesson', day: sel, start: null, dur: 60, name: preset || '', price: '', edit: false };
-  openSheet(head(F.edit ? 'Запись' : 'Новая запись', true) + `<div class="sh-body">
-    <div class="seg" id="fKind"><i class="th"></i><button data-v="lesson">Урок</button><button data-v="call">Созвон</button></div>
+        : { id: null, kind: preset.kind || (me && me.role) || 'lesson', day: preset.day || sel, start: null, dur: 60, name: preset.name || '', price: '', edit: false, pastMode: !!preset.past };
+  if (!e && F.name) { const st = stuOf(F.name); if (st) { F.kind = 'lesson'; if (st.plan === 'single' && st.price) F.price = String(st.price); const x = stuStats(st); if (x.last) F.dur = x.last.dur_min; } }
+  openSheet(head(F.edit ? 'Запись' : F.pastMode ? 'Прошедшее занятие' : 'Новая запись', true) + `<div class="sh-body">
+    ${segHTML('fKind', [['lesson', 'Урок'], ['call', 'Созвон']])}
     <div class="lbl">День</div><div class="days" id="fDays"></div>
-    <div class="lbl">Время</div><div class="slots" id="fSlots"></div><div class="warn" id="fWarn"></div>
+    <div class="lbl">Время</div><div class="slots" id="fSlots"></div><div class="warn" id="fWarn"></div><div class="note" id="fNote"></div>
     <div class="lbl">Длительность</div>
-    <div class="seg" id="fDur"><i class="th"></i><button data-v="60">1 ч</button><button data-v="90">1,5 ч</button><button data-v="120">2 ч</button></div>
+    ${segHTML('fDur', [['60', '1 час'], ['90', '1,5 часа'], ['120', '2 часа']])}
     <div class="lbl">С кем</div>
     <div class="grp"><div class="row"><input id="fName" placeholder="Имя" autocomplete="off" autocapitalize="words" enterkeyhint="done" value="${esc(F.name)}"></div></div>
     <div class="chips" id="fRecent"></div>
     <div class="lbl">Цена</div>
-    <div class="grp"><div class="row"><input id="fPrice" inputmode="decimal" placeholder="необязательно" value="${esc(F.price)}"></div></div>
-    ${F.edit ? '<button class="danger press" id="fDel">Удалить запись</button>' : ''}
+    <div class="grp"><div class="row"><input id="fPrice" inputmode="decimal" placeholder="Необязательно" value="${esc(F.price)}"></div></div>
+    ${F.edit ? '<button class="danger tap" id="fDel">Удалить запись</button>' : ''}
   </div>`);
   $('#shX').onclick = closeSheet;
-  seg($('#fKind'), F.kind, v => { F.kind = v; renderRecent(); });
+  glassSwitch($('#fKind'), F.kind, v => { F.kind = v; renderRecent(); });
   if (![60, 90, 120].includes(F.dur)) F.dur = 60;
-  seg($('#fDur'), F.dur, v => { F.dur = +v; renderSlots(); });
+  glassSwitch($('#fDur'), F.dur, v => { F.dur = +v; renderSlots(); });
   renderDays($('#fDays'), F.day, d => { F.day = d; markDay($('#fDays'), d); renderSlots(); });
   renderSlots(); renderRecent();
-  $('#fName').oninput = ev => { F.name = ev.target.value; check(); };
+  $('#fName').oninput = ev => { F.name = ev.target.value; renderRecent(); check(); };
   $('#fName').onkeydown = ev => { if (ev.key === 'Enter') ev.target.blur(); };
   $('#fPrice').oninput = ev => { F.price = ev.target.value.replace(',', '.').replace(/[^\d.]/g, ''); };
   $('#shOk').onclick = submit;
-  if (F.edit) $('#fDel').onclick = () => { const id = F.id; closeSheet(); setTimeout(() => delEntry(id).then(() => renderList(false)), 250); };
+  if (F.edit) $('#fDel').onclick = () => { const id = F.id; later(() => delEntry(id).then(() => refreshAll(false))); };
   check(true);
 }
 function renderSlots() {
-  const isToday = F.day === today(), nm = nowMin();
+  const t = today(), nm = nowMin();
   let h = '';
   for (const m of SLOTS) {
     const c = clash(F.day, m, F.dur, F.id);
-    const gone = isToday && m + 30 < nm && F.start !== m;
-    if (c) h += `<button class="slot busy" disabled><b>${hm(m)}</b><small>${KIND[c.kind].toLowerCase()}</small></button>`;
-    else if (gone) h += `<button class="slot gone" disabled><b>${hm(m)}</b></button>`;
-    else h += `<button class="slot${F.start === m ? ' on' : ''}" data-m="${m}"><b>${hm(m)}</b></button>`;
+    const pst = F.day < t || (F.day === t && m + F.dur <= nm);
+    if (c) h += `<button class="slot busy" disabled><b>${hm(m)}</b><small>${c.kind === 'lesson' ? 'урок' : 'созвон'}</small></button>`;
+    else h += `<button class="slot${F.start === m ? ' on' : ''}${pst ? ' pst' : ''}" data-m="${m}"><b>${hm(m)}</b>${pst && F.day === t ? '<small>прошло</small>' : ''}</button>`;
   }
   const custom = F.start != null && !SLOTS.includes(F.start);
-  h += `<button class="slot${custom ? ' on' : ''}" data-m="custom"><b>${custom ? hm(F.start) : 'Своё'}</b>${custom ? '' : '<small>время</small>'}</button>`;
+  h += `<label class="slot${custom ? ' on' : ''}"><b>${custom ? hm(F.start) : 'Свое'}</b>${custom ? '' : '<small>время</small>'}<input type="time" class="ovl" id="fTime" step="300" value="${custom ? hm(F.start) : ''}"></label>`;
   const el = $('#fSlots'); el.innerHTML = h;
-  el.onclick = ev => {
-    const b = ev.target.closest('.slot'); if (!b || b.disabled) return; vib();
-    if (b.dataset.m === 'custom') {
-      const t = $('#pickTime'); t.value = F.start != null ? hm(F.start) : '';
-      t.onchange = () => { if (!t.value) return; const [H, M] = t.value.split(':').map(Number); F.start = H * 60 + M; renderSlots(); };
-      try { t.showPicker(); } catch (e) { t.focus(); t.click(); }
-      return;
-    }
-    F.start = +b.dataset.m; renderSlots();
-  };
+  el.onclick = ev => { const b = ev.target.closest('button.slot'); if (!b || b.disabled) return; vib(); F.start = +b.dataset.m; el.querySelectorAll('.slot').forEach(x => x.classList.toggle('on', x === b)); check(); };
+  $('#fTime').onchange = ev => { const v = ev.target.value; if (!v) return; const [H, M] = v.split(':').map(Number); F.start = H * 60 + M; vib(); renderSlots(); };
   check();
 }
 function renderRecent() {
+  const q = norm(F.name);
   const seen = new Map();
-  [...entries].sort((a, b) => (b.day + hm(b.start_min)).localeCompare(a.day + hm(a.start_min))).forEach(e => {
-    if (!e.name || seen.has(e.name)) return; seen.set(e.name, e.kind);
-  });
-  const names = [...seen].sort((a, b) => (b[1] === F.kind) - (a[1] === F.kind)).slice(0, 10).map(x => x[0]);
+  students.forEach(s => seen.set(s.name, { stu: s, k: 'lesson' }));
+  [...entries].sort((a, b) => sortKey(b).localeCompare(sortKey(a))).forEach(e => { if (e.name && ![...seen.keys()].some(k => norm(k) === norm(e.name))) seen.set(e.name, { stu: null, k: e.kind }); });
+  let names = [...seen].filter(([n]) => !q || (norm(n).includes(q) && norm(n) !== q));
+  names.sort((a, b) => ((b[1].k === F.kind) - (a[1].k === F.kind)) || ((!!b[1].stu) - (!!a[1].stu)));
+  names = names.slice(0, 12);
   const el = $('#fRecent');
-  el.innerHTML = names.map(n => `<button class="chip">${esc(n)}</button>`).join('');
+  el.innerHTML = names.map(([n, x], i) => `<button class="chip" style="animation-delay:${i * 22}ms" data-n="${esc(n)}">${x.stu ? avaHTML(n, x.stu.tg, 26) : ''}${esc(n)}</button>`).join('');
   el.style.display = names.length ? '' : 'none';
-  el.onclick = ev => { const b = ev.target.closest('.chip'); if (!b) return; vib(); F.name = b.textContent; $('#fName').value = F.name; check(); };
+  el.onclick = ev => { const b = ev.target.closest('.chip'); if (!b) return; vib(); F.name = b.dataset.n; $('#fName').value = F.name;
+    const st = stuOf(F.name); if (st && st.plan === 'single' && st.price && !F.price) { F.price = String(st.price); $('#fPrice').value = F.price; }
+    renderRecent(); check(); };
 }
 let wasOk = false;
 function check(first) {
   const c = F.start != null ? clash(F.day, F.start, F.dur, F.id) : null;
-  $('#fWarn').textContent = c ? `Занято: ${KIND[c.kind].toLowerCase()} · ${c.name}, ${hm(c.start_min)}–${hm(c.start_min + c.dur_min)}` : '';
+  $('#fWarn').textContent = c ? `Занято: ${c.kind === 'lesson' ? 'урок' : 'созвон'} · ${c.name}, ${hm(c.start_min)}–${hm(c.start_min + c.dur_min)}` : '';
+  const isPast = F.start != null && (F.day < today() || (F.day === today() && F.start + F.dur <= nowMin()));
+  $('#fNote').textContent = isPast && !c ? 'Уже прошло: запишется как проведенное' : '';
+  if (!F.edit) $('#shT').textContent = isPast || F.pastMode ? 'Прошедшее занятие' : 'Новая запись';
   const ok = F.start != null && !c && F.name.trim().length > 0;
   const b = $('#shOk'); if (!b) return;
-  b.classList.toggle('dis', !ok);
-  if (ok && !wasOk && !first) { b.classList.remove('ok'); void b.offsetWidth; }
-  b.classList.toggle('ok', ok);
+  b.classList.toggle('dis', !ok); b.classList.toggle('ok', ok);
+  if (ok && !wasOk && !first) { b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); vib(12); }
   wasOk = ok;
 }
 async function submit() {
-  if ($('#shOk').classList.contains('dis')) {
-    vib();
-    const why = F.start == null ? 'Выбери время' : !F.name.trim() ? 'Напиши, с кем' : 'Это время занято';
-    toast(why); return;
-  }
+  if ($('#shOk').classList.contains('dis')) { vib(20); toast(F.start == null ? 'Выбери время' : !F.name.trim() ? 'Напиши, с кем' : 'Это время занято'); return; }
   const e = { id: F.id || uid(), day: F.day, start_min: F.start, dur_min: F.dur, kind: F.kind, name: F.name.trim(), price: F.price };
   fresh = e.id; closeSheet();
-  const goto = e.day;
   await saveEntry(e);
-  if (goto !== sel) { sel = goto; renderDays($('#days'), sel, selectDay); }
-  renderList(false);
+  if (tab === 'list' && e.day !== sel) { const dir = e.day > sel ? 'inL' : 'inR'; sel = e.day; renderDays($('#days'), sel, selectDay); renderHero(dir); renderList(false, dir); markHas(); }
+  else refreshAll(false);
+  const st = e.kind === 'lesson' ? stuOf(e.name) : null;
+  if (st && st.plan === 'pkg') { const x = stuStats(st); if (x.left <= 1) setTimeout(() => toast(x.left <= 0 ? `У ${st.name} закончился абонемент` : `У ${st.name} осталось 1 занятие`), 700); }
+  else if (ended(e)) setTimeout(() => toast('Записано как проведенное'), 600);
 }
 
-/* ---------- люди и история ---------- */
-function openPeople() {
-  const m = new Map();
-  entries.forEach(e => { const r = m.get(e.name) || { n: 0, last: '', kind: e.kind }; r.n++; if (e.day > r.last) { r.last = e.day; r.kind = e.kind; } m.set(e.name, r); });
-  const rows = [...m].sort((a, b) => b[1].last.localeCompare(a[1].last));
-  openSheet(head('Люди', false) + `<div class="sh-body">${rows.length ? '<div class="grp">' + rows.map(([n, r], i) => `${i ? '<div class="sep"></div>' : ''}<button class="prow press" style="width:100%;text-align:left" data-n="${esc(n)}"><span class="n"><div>${esc(n)}</div><span>${r.n} ${plural(r.n, 'запись', 'записи', 'записей')} · последняя ${dayLbl(r.last).n}</span></span><span class="tag ${r.kind}">${KIND[r.kind]}</span></button>`).join('') + '</div>' : '<div class="empty" style="padding-top:20vh"><b>Пока никого</b><span>Люди появятся после первых записей.</span></div>'}</div>`);
-  $('#shX').onclick = closeSheet;
-  sheet.querySelectorAll('.prow').forEach(b => b.onclick = () => { const n = b.dataset.n; closeSheet(); setTimeout(() => openEditor(null, n), 420); });
-}
+/* ================= история ================= */
 function openHistory() {
-  const t = today(), nm = nowMin();
-  const past = entries.filter(e => e.day < t || (e.day === t && e.start_min + e.dur_min <= nm)).sort((a, b) => (b.day + hm(b.start_min)).localeCompare(a.day + hm(a.start_min))).slice(0, 150);
-  let h = '', cur = '';
+  const past = entries.filter(ended).sort((a, b) => sortKey(b).localeCompare(sortKey(a))).slice(0, 200);
+  let h = `<button class="btn alt tap" id="hAdd" style="display:flex;align-items:center;justify-content:center;gap:8px">${ICO.check(20)}Добавить прошедшее занятие</button>`, cur = '';
   past.forEach(e => {
-    if (e.day !== cur) { if (cur) h += '</div>'; cur = e.day; const d = pd(e.day); h += `<div class="hdr">${dayLbl(e.day).n}, ${WDL[d.getDay()]}</div><div class="grp">`; }
-    else h += '<div class="sep"></div>';
-    h += `<div class="prow"><span class="tm"><b>${hm(e.start_min)}</b><span>${hm(e.start_min + e.dur_min)}</span></span><span class="n"><div>${esc(e.name)}</div></span><span class="tag ${e.kind}">${KIND[e.kind]}</span></div>`;
+    if (e.day !== cur) { if (cur) h += '</div>'; cur = e.day; const r = relDay(e.day); h += `<div class="hdr">${cap(r)}${r.includes(',') ? '' : ', ' + longDay(e.day)}</div><div class="grp">`; }
+    else h += '<div class="sep" style="margin-left:62px"></div>';
+    h += `<button class="prow tap" data-id="${e.id}"><span class="ic ${e.kind}">${ICO[e.kind](20)}</span><span class="n"><div>${esc(e.name)}</div><span>${KIND[e.kind]} · ${hm(e.start_min)}–${hm(e.start_min + e.dur_min)}</span></span></button>`;
   });
   if (cur) h += '</div>';
-  openSheet(head('История', false) + `<div class="sh-body">${h || '<div class="empty" style="padding-top:20vh"><b>Пока пусто</b><span>Здесь будут прошедшие записи.</span></div>'}</div>`);
+  if (!past.length) h += '<div class="empty" style="padding-top:12vh"><b>Пока пусто</b><span>Здесь будут прошедшие уроки и созвоны.</span></div>';
+  openSheet(head('История', false) + `<div class="sh-body">${h}</div>`);
   $('#shX').onclick = closeSheet;
-}
-const plural = (n, a, b, c) => { const m10 = n % 10, m100 = n % 100; return m10 === 1 && m100 !== 11 ? a : m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20) ? b : c; };
-
-/* ---------- статистика ---------- */
-let period = 'week';
-function renderStats() {
-  const t = pd(today()); let from, to;
-  if (period === 'week') { const k = (t.getDay() + 6) % 7; from = addD(today(), -k); to = addD(from, 6); }
-  else { from = ymd(new Date(t.getFullYear(), t.getMonth(), 1)); to = ymd(new Date(t.getFullYear(), t.getMonth() + 1, 0)); }
-  const r = entries.filter(e => e.day >= from && e.day <= to);
-  const L = r.filter(e => e.kind === 'lesson'), C = r.filter(e => e.kind === 'call');
-  const hrs = a => (a.reduce((s, e) => s + e.dur_min, 0) / 60).toLocaleString('ru-RU', { maximumFractionDigits: 1 });
-  const sum = r.reduce((s, e) => s + (Number(e.price) || 0), 0);
-  $('#pStats').innerHTML = `<div class="h1">Статистика</div>
-    <div class="seg" id="sPer"><i class="th"></i><button data-v="week">Неделя</button><button data-v="month">Месяц</button></div>
-    <div class="tiles">
-      <div class="tile" style="--i:0"><b>${L.length}</b><span>${plural(L.length, 'урок', 'урока', 'уроков')}</span></div>
-      <div class="tile" style="--i:1"><b>${C.length}</b><span>${plural(C.length, 'созвон', 'созвона', 'созвонов')}</span></div>
-      <div class="tile" style="--i:2"><b>${hrs(L)}</b><span>часов уроков</span></div>
-      <div class="tile" style="--i:3"><b>${sum.toLocaleString('ru-RU')}</b><span>сумма по записям</span></div>
-    </div>`;
-  seg($('#sPer'), period, v => { period = v; renderStats(); });
+  $('#hAdd').onclick = () => later(() => openEditor(null, { day: today(), past: true }));
+  sheet.querySelectorAll('.prow').forEach(b => b.onclick = () => { const e = entries.find(x => x.id === b.dataset.id); later(() => openEditor(e)); });
 }
 
-/* ---------- настройки ---------- */
+/* ================= ученики ================= */
+let stuFilter = 'all';
+function ringSVG(left, total, size = 48) {
+  const r = size / 2 - 4, c = 2 * Math.PI * r, p = total > 0 ? Math.max(0, Math.min(1, left / total)) : 0;
+  const col = left <= 0 ? '#FF6961' : left <= 1 ? '#F4A73B' : '#30D158';
+  return `<div class="ring" style="width:${size}px;height:${size}px"><svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle class="bgc" cx="${size / 2}" cy="${size / 2}" r="${r}"/><circle class="fg" cx="${size / 2}" cy="${size / 2}" r="${r}" stroke="${col}" stroke-dasharray="${c}" stroke-dashoffset="${c}" data-off="${c * (1 - p)}"/></svg><b style="color:${col}">${Math.max(0, left)}</b></div>`;
+}
+function renderStu(anim = true) {
+  const all = students.map(s => ({ s, x: stuStats(s) }));
+  const pkg = all.filter(a => a.s.plan === 'pkg'), single = all.filter(a => a.s.plan !== 'pkg');
+  const low = pkg.filter(a => a.x.left <= 1).sort((a, b) => a.x.left - b.x.left);
+  let rows = stuFilter === 'pkg' ? pkg.slice() : stuFilter === 'single' ? single.slice() : all.slice();
+  rows.sort((a, b) => (a.x.next ? sortKey(a.x.next) : '9').localeCompare(b.x.next ? sortKey(b.x.next) : '9') || a.s.name.localeCompare(b.s.name));
+  const p = $('#pStu');
+  p.innerHTML = `<div class="phead"><div class="h1">Ученики</div><button class="circ glass tap" id="sAdd" aria-label="Новый ученик">${ICO.plus}</button></div>
+    <div class="shero"><div class="big"><b id="sNum" data-v="0">0</b><span>${plural(all.length, 'ученик', 'ученика', 'учеников')}</span></div>
+      <div class="kinds"><div><i style="background:rgba(48,209,88,.16);color:#30D158">${ICO.check(13)}</i>${pkg.length} абонемент</div><div><i style="background:var(--fill2);color:var(--t2)">${ICO.clock(13)}</i>${single.length} разово</div></div></div>
+    ${low.length ? `<button class="alert tap" id="sLow"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F4A73B" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.1"/></svg><div><b>Пора продлить абонемент</b><span>${low.map(a => esc(a.s.name) + (a.x.left <= 0 ? ': закончился' : ': осталось 1')).join(' · ')}</span></div></button>` : ''}
+    <div style="height:16px"></div>
+    ${segHTML('sFilter', [['all', 'Все'], ['pkg', 'Абонемент'], ['single', 'Разово']])}
+    <div class="sgrid">${rows.map(({ s, x }, i) => {
+      const soon = x.next && (x.next.day === today() || x.next.day === addD(today(), 1));
+      const nx = x.next ? `${ICO.cal(13)}${relDay(x.next.day)} в ${hm(x.next.start_min)}` : x.last ? `${ICO.clock(13)}было ${relDay(x.last.day)}` : `${ICO.clock(13)}пока без записей`;
+      const sub = s.plan === 'pkg' ? `Осталось ${Math.max(0, x.left)} из ${s.pkg_total || 0}` : (s.price ? `Разово · ${money(s.price)}` : 'Разовые занятия');
+      const right = s.plan === 'pkg' ? ringSVG(x.left, s.pkg_total || 0) : (x.total ? `<span class="badge">${x.total} ${plural(x.total, 'занятие', 'занятия', 'занятий')}</span>` : '<span class="badge">новый</span>');
+      return `<button class="stile" style="--i:${i}" data-id="${s.id}"><div class="tr">${avaHTML(s.name, s.tg)}${right}</div><div class="nm2"><b>${esc(s.name)}</b><span>${sub}</span><div class="nx${soon ? ' soon' : ''}">${nx}</div></div></button>`;
+    }).join('')}</div>
+    ${rows.length ? '' : `<div class="empty"><span class="ic lesson" style="width:64px;height:64px;border-radius:20px"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="9.5" cy="8" r="3.6"/><path d="M3 19.5c.6-3.6 3.2-5.6 6.5-5.6s5.9 2 6.5 5.6M19 8v6M16 11h6"/></svg></span><b>${students.length ? 'Тут пусто' : 'Добавь первого ученика'}</b><span>${students.length ? 'В этой группе пока никого.' : 'Абонемент или разовые. Остаток занятий считается сам по проведенным урокам.'}</span><button class="addbtn tap" id="sAdd2">${ICO.plus}Добавить ученика</button></div>`}`;
+  glassSwitch($('#sFilter'), stuFilter, v => { stuFilter = v; renderStu(false); });
+  $('#sAdd').onclick = () => openStudent();
+  const a2 = $('#sAdd2'); if (a2) a2.onclick = () => openStudent();
+  const lw = $('#sLow'); if (lw) lw.onclick = () => openStudent(low[0].s);
+  p.querySelectorAll('.stile').forEach(b => b.onclick = () => openStudent(students.find(s => s.id === b.dataset.id)));
+  const sn = $('#sNum'); if (anim) rollNum(sn, all.length); else { sn.dataset.v = all.length; sn.textContent = all.length; }
+  setTimeout(() => p.querySelectorAll('.ring .fg').forEach(c => c.style.strokeDashoffset = c.dataset.off), anim ? 280 : 20);
+}
+let S = null;
+function openStudent(s) {
+  S = s ? { ...s, price: s.price ?? '', prior: s.prior || 0, tg: s.tg || '', isNew: false, oldName: s.name }
+        : { id: uid(), name: '', plan: 'pkg', pkg_total: 8, pkg_start: '2000-01-01', price: '', prior: 0, tg: '', isNew: true };
+  const x = stuStats(S);
+  const nick = tgNick(S.tg);
+  openSheet(head(S.isNew ? 'Новый ученик' : '', true) + `<div class="sh-body">
+    <div class="phero"><span id="sAvaBox">${avaHTML(S.name || '?', S.tg, 88)}</span>${S.isNew ? '' : `<h2>${esc(S.name)}</h2><div class="sub">${S.plan === 'pkg' ? 'Абонемент' : 'Разовые занятия'} · ${x.total} ${plural(x.total, 'занятие', 'занятия', 'занятий')}</div>`}</div>
+    ${S.isNew ? '' : `<div class="acts">
+      <button class="act tap" id="aBook">${ICO.cal(22)}Записать</button>
+      <button class="act tap" id="aDone">${ICO.check(22)}Провели</button>
+      ${nick ? `<a class="act tg tap" href="https://t.me/${nick}" target="_blank" rel="noopener">${ICO.tg(22)}Написать</a>` : `<button class="act tg tap" id="aTg">${ICO.tg(22)}Telegram</button>`}
+    </div>`}
+    <div class="lbl">Формат</div>
+    ${segHTML('sPlan', [['pkg', 'Абонемент'], ['single', 'Разово']])}
+    <div id="sPkg"></div>
+    <div class="lbl">Данные</div>
+    <div class="grp">
+      <div class="row"><span class="k">Имя</span><input id="sName" placeholder="Как зовут" autocomplete="off" autocapitalize="words" value="${esc(S.name)}"></div><div class="sep"></div>
+      <div class="row"><span class="k">Telegram</span><input id="sTg" placeholder="@ник" autocomplete="off" autocapitalize="none" value="${esc(S.tg)}"></div><div class="sep"></div>
+      <div class="row"><span class="k" id="sPriceL">${S.plan === 'pkg' ? 'Абонемент' : 'Занятие'}</span><input id="sPrice" inputmode="decimal" placeholder="Цена, необязательно" value="${esc(S.price)}"></div>
+    </div>
+    ${S.isNew || !x.done.length ? '' : `<div class="lbl">Последние занятия</div><div class="grp">${x.done.slice(0, 5).map((e, i) => `${i ? '<div class="sep" style="margin-left:62px"></div>' : ''}<button class="prow tap" data-id="${e.id}"><span class="ic lesson">${ICO.lesson(20)}</span><span class="n"><div>${cap(relDay(e.day))}</div><span>${hm(e.start_min)}–${hm(e.start_min + e.dur_min)}</span></span></button>`).join('')}</div>`}
+    ${S.isNew ? '' : '<button class="danger tap" id="sDel">Удалить ученика</button>'}
+  </div>`);
+  $('#shX').onclick = closeSheet;
+  glassSwitch($('#sPlan'), S.plan, v => { S.plan = v; $('#sPriceL').textContent = v === 'pkg' ? 'Абонемент' : 'Занятие'; drawPlan(); });
+  const redrawAva = () => { $('#sAvaBox').innerHTML = avaHTML(S.name || '?', S.tg, 88); };
+  $('#sName').oninput = ev => { S.name = ev.target.value; redrawAva(); validate(); };
+  $('#sTg').onchange = ev => { S.tg = tgNick(ev.target.value) ? '@' + tgNick(ev.target.value) : ''; ev.target.value = S.tg; redrawAva(); };
+  $('#sPrice').oninput = ev => { S.price = ev.target.value.replace(',', '.').replace(/[^\d.]/g, ''); };
+  $('#shOk').onclick = async () => {
+    if (!S.name.trim()) { toast('Напиши имя'); vib(20); return; }
+    if (students.some(o => o.id !== S.id && norm(o.name) === norm(S.name))) { toast('Такой ученик уже есть'); return; }
+    S.tg = tgNick($('#sTg').value) ? '@' + tgNick($('#sTg').value) : '';
+    const out = { id: S.id, name: S.name.trim(), plan: S.plan, pkg_total: S.pkg_total, pkg_start: S.pkg_start, price: S.price, prior: S.prior || 0, tg: S.tg };
+    if (!S.isNew && S.oldName && S.oldName !== out.name) await renameEntries(S.oldName, out.name);
+    closeSheet(); await saveStu(out); refreshAll(false); if (tab === 'stu') renderStu(false);
+  };
+  if (!S.isNew) {
+    $('#aBook').onclick = () => { const n = S.name; later(() => openEditor(null, { name: n, kind: 'lesson' })); };
+    $('#aDone').onclick = () => { const n = S.name; later(() => openEditor(null, { name: n, kind: 'lesson', day: today(), past: true })); };
+    const at = $('#aTg'); if (at) at.onclick = () => { $('#sTg').focus(); toast('Впиши ник в поле Telegram'); };
+    $('#sDel').onclick = () => { const id = S.id; later(() => delStu(id).then(() => renderStu(false))); };
+    sheet.querySelectorAll('.prow[data-id]').forEach(b => b.onclick = () => { const e = entries.find(z => z.id === b.dataset.id); later(() => openEditor(e)); });
+  }
+  drawPlan(); validate(true);
+}
+function drawPlan() {
+  const box = $('#sPkg');
+  const x = stuStats(S);
+  if (S.plan !== 'pkg') {
+    box.innerHTML = `<div style="height:10px"></div><div class="stats3"><div><b id="sTot">${x.total}</b><span>всего</span></div><div><b>${x.last ? dd(x.last.day) : '—'}</b><span>последнее</span></div><div><b>${x.next ? dd(x.next.day) : '—'}</b><span>следующее</span></div></div>
+      <div class="grp" style="margin-top:10px"><div class="row">Было до приложения<div class="stepper"><button class="tap" id="pMinus" aria-label="Меньше">${ICO.minus}</button><b id="pVal">${S.prior || 0}</b><button class="tap" id="pPlus" aria-label="Больше">${ICO.plus}</button></div></div></div>`;
+    const upd = () => { $('#pVal').textContent = S.prior; $('#sTot').textContent = stuStats(S).total; vib(); };
+    $('#pMinus').onclick = () => { if (S.prior > 0) { S.prior--; upd(); } };
+    $('#pPlus').onclick = () => { S.prior++; upd(); };
+    return;
+  }
+  const left = Math.max(0, x.left);
+  const size = LS('ps_' + S.id) || 8;
+  box.innerHTML = `<div style="height:10px"></div>
+    <div class="counter"><button class="stp tap" id="sMinus" aria-label="Меньше">${ICO.minus}</button><div class="c"><b id="sLeft">${left}</b><span id="sLeftW">${plural(left, 'занятие осталось', 'занятия осталось', 'занятий осталось')}</span></div><button class="stp tap" id="sPlus" aria-label="Больше">${ICO.plus}</button></div>
+    <div class="dots" id="sDots"></div>
+    <div class="lbl">${S.isNew ? 'Абонемент на' : 'Продлевать на'}</div>
+    <div class="chips" style="margin-top:0" id="sSizes">${[4, 8, 12, 16].map(n => `<button class="chip${size === n ? ' on' : ''}" data-t="${n}">${n} ${plural(n, 'занятие', 'занятия', 'занятий')}</button>`).join('')}</div>
+    ${x.planned ? `<div class="note">Еще запланировано: ${x.planned}</div>` : ''}
+    ${S.isNew ? '' : '<div style="height:12px"></div><button class="btn tap" id="sRenew">Продлить абонемент</button>'}`;
+  const dots = () => { const l = Math.max(0, stuStats(S).left); $('#sDots').innerHTML = Array.from({ length: Math.min(24, Math.max(S.pkg_total, l)) }, (_, i) => `<i class="${i < l ? 'f' : ''}"></i>`).join(''); };
+  dots();
+  const bump = () => { const l = Math.max(0, stuStats(S).left), b = $('#sLeft'); b.textContent = l; $('#sLeftW').textContent = plural(l, 'занятие осталось', 'занятия осталось', 'занятий осталось'); b.classList.remove('bump'); void b.offsetWidth; b.classList.add('bump'); dots(); };
+  $('#sMinus').onclick = () => { if (stuStats(S).left <= 0) return; S.pkg_total--; vib(); bump(); };
+  $('#sPlus').onclick = () => { S.pkg_total++; vib(); bump(); };
+  $('#sSizes').onclick = ev => { const c = ev.target.closest('.chip'); if (!c) return; const n = +c.dataset.t; SS('ps_' + S.id, n); $('#sSizes').querySelectorAll('.chip').forEach(z => z.classList.toggle('on', z === c)); vib();
+    if (S.isNew) { S.pkg_total = stuStats(S).used + n; bump(); } };
+  const rn = $('#sRenew'); if (rn) rn.onclick = () => { const n = LS('ps_' + S.id) || 8; S.pkg_total += n; vib(14); bump(); toast(`Плюс ${n} ${plural(n, 'занятие', 'занятия', 'занятий')}. Нажми галочку`); };
+}
+function validate(first) { const ok = S.name.trim().length > 0; const b = $('#shOk'); const was = b.classList.contains('ok'); b.classList.toggle('dis', !ok); b.classList.toggle('ok', ok); if (ok && !was && !first) { b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); } }
+
+/* ================= настройки ================= */
 function renderSet() {
-  $('#pSet').innerHTML = `<div class="h1">Настройки</div>
-    <div class="hdr">Я веду</div>
-    <div class="seg" id="setRole"><i class="th"></i><button data-v="lesson">Уроки</button><button data-v="call">Созвоны</button></div>
+  $('#pSet').innerHTML = `<div class="phead"><div class="h1">Настройки</div></div>
+    <div class="hdr" style="margin-top:6px">Я веду</div>
+    ${segHTML('setRole', [['lesson', 'Уроки'], ['call', 'Созвоны']])}
     <div class="hdr">Общее расписание</div>
     <div class="grp">
-      <div class="row">Код пары<span class="v" style="font-variant-numeric:tabular-nums;letter-spacing:.06em">${esc(me.pair)}</span></div>
+      <div class="row">Код пары<span class="v" style="letter-spacing:.08em">${esc(me.pair)}</span></div>
       <div class="sep"></div>
-      <button class="row press" id="setCopy" style="width:100%;color:var(--amb)">Скопировать код</button>
+      <button class="row tap" id="setCopy" style="color:var(--amb)">Скопировать код</button>
       <div class="sep"></div>
-      <button class="row press" id="setJoin" style="width:100%">Подключиться к другому коду</button>
+      <button class="row tap" id="setJoin">Подключиться к другому коду<span class="v">›</span></button>
     </div>
     <div class="hdr">Синхронизация</div>
-    <div class="grp"><div class="row">${online() ? 'Включена' : 'Выключена: данные только на этом телефоне'}</div></div>`;
-  seg($('#setRole'), me.role, v => { me.role = v; SS('me', me); });
+    <div class="grp"><div class="row"><span style="width:8px;height:8px;border-radius:4px;background:${online() ? 'var(--grn)' : 'var(--t3)'}"></span>${online() ? 'Включена' : 'Выключена: нет config.js'}</div></div>
+    <div class="hdr">Важно</div>
+    <div class="grp"><div class="row" style="font-weight:600;color:var(--t2);font-size:14px;line-height:1.45;padding:14px 16px">Приложение на экране «Домой» и Safari хранят вход отдельно. Если где-то попросит код, введи этот же код пары, и все подтянется.</div></div>`;
+  glassSwitch($('#setRole'), me.role, v => { me.role = v; SS('me', me); });
   $('#setCopy').onclick = async () => { try { await navigator.clipboard.writeText(me.pair); toast('Код скопирован'); } catch (e) { toast(me.pair); } };
   $('#setJoin').onclick = () => {
-    openSheet(head('Другой код', false) + `<div class="sh-body"><div class="lbl">Код от партнёра</div><div class="grp"><div class="row"><input id="jCode" placeholder="Например K7M2QX9P" autocapitalize="characters" autocomplete="off"></div></div><div style="height:16px"></div><button class="big press" id="jGo">Подключиться</button></div>`);
+    openSheet(head('Другой код', false) + `<div class="sh-body"><div class="lbl">Код от партнера</div><div class="grp"><div class="row"><input id="jCode" placeholder="Например K7M2QX9P" autocapitalize="characters" autocomplete="off"></div></div><div style="height:16px"></div><button class="btn tap" id="jGo">Подключиться</button></div>`);
     $('#shX').onclick = closeSheet;
-    $('#jGo').onclick = () => { const c = $('#jCode').value.trim().toUpperCase(); if (c.length < 6) { toast('Код слишком короткий'); return; } me.pair = c; SS('me', me); entries = []; SS('cache', []); closeSheet(); renderSet(); renderList(false); connect(); toast('Подключено'); };
+    $('#jGo').onclick = () => { const c = $('#jCode').value.trim().toUpperCase(); if (c.length < 6) { toast('Код слишком короткий'); return; } me.pair = c; SS('me', me); entries = []; students = []; SS('cache', []); SS('stu', []); closeSheet(); renderSet(); refreshAll(false); connect(); toast('Подключено'); };
   };
 }
 
-/* ---------- вкладки ---------- */
-const TABS = ['stats', 'list', 'set'];
+/* ================= вкладки ================= */
+const TABS = ['stu', 'list', 'set'];
 function goTab(t) {
-  if (t === tab) return; tab = t; vib();
-  $('#thumb').style.transform = `translateX(${TABS.indexOf(t) * 100}%)`;
-  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.t === t));
-  $('#pList').classList.toggle('on', t === 'list'); $('#pStats').classList.toggle('on', t === 'stats'); $('#pSet').classList.toggle('on', t === 'set');
+  if (t === tab) return;
+  const dir = TABS.indexOf(t) > TABS.indexOf(tab) ? 'in-r' : 'in-l';
+  tab = t; tabSw.set(t);
+  ['pStu', 'pList', 'pSet'].forEach((id, i) => { const p = $('#' + id); const on = TABS[i] === t; p.classList.toggle('on', on); p.classList.remove('in-r', 'in-l'); if (on) { void p.offsetWidth; p.classList.add(dir); } });
   $('#top').classList.toggle('away', t !== 'list');
-  if (t === 'stats') renderStats(); if (t === 'set') renderSet();
+  if (t === 'stu') renderStu(true); if (t === 'set') renderSet();
 }
-document.querySelectorAll('.tab').forEach(b => b.onclick = () => goTab(b.dataset.t));
-$('#thumb').style.transform = 'translateX(100%)';
+const tabSw = glassSwitch($('#tabs'), 'list', v => goTab(v), { free: true, again: v => { if (v === 'list') { $('#pList').scrollTo({ top: 0, behavior: 'smooth' }); if (sel !== today()) selectDay(today()); } } });
 
-/* ---------- шапка ---------- */
-$('#pList').addEventListener('scroll', e => $('#top').classList.toggle('scrolled', e.target.scrollTop > 4), { passive: true });
+/* ================= шапка ================= */
+$('#pList').addEventListener('scroll', e => $('#top').classList.toggle('scrolled', e.target.scrollTop > 6), { passive: true });
 $('#bAdd').onclick = () => openEditor();
-$('#bPeople').onclick = openPeople;
 $('#bHist').onclick = openHistory;
-$('#bCal').onclick = () => { const p = $('#pickDate'); p.value = sel; try { p.showPicker(); } catch (e) { p.focus(); p.click(); } };
-$('#pickDate').onchange = e => { if (!e.target.value) return; const d = e.target.value; renderDays($('#days'), d, selectDay); const dir = d > sel ? 'inL' : 'inR'; sel = d; renderList(true, dir); };
+$('#pickDate').addEventListener('focus', e => { e.target.value = sel; });
+$('#pickDate').addEventListener('change', e => { const d = e.target.value; if (!d || d === sel) return; vib(); const dir = d > sel ? 'inL' : 'inR'; sel = d; renderDays($('#days'), sel, selectDay); renderHero(dir); renderList(true, dir); });
 
-/* ---------- тост ---------- */
+/* ================= тост ================= */
 let tT;
-function toast(s) { const t = $('#toast'); t.textContent = s; t.classList.add('on'); clearTimeout(tT); tT = setTimeout(() => t.classList.remove('on'), 2200); }
+function toast(s) { const t = $('#toast'); t.textContent = s; t.classList.add('on'); clearTimeout(tT); tT = setTimeout(() => t.classList.remove('on'), 2600); }
 
-/* ---------- первый вход ---------- */
+/* ================= первый вход ================= */
 function onboarding() {
   const o = $('#onb'); let role = 'lesson';
-  o.innerHTML = `<h1>Расписание на двоих</h1><p>Одно общее расписание: видно, когда у второго урок или созвон, и куда можно ставить.</p>
+  o.innerHTML = `<div class="logo">${ICO.cal(30)}</div>
+    <h1>Расписание на двоих</h1><p>Видно, когда у второго урок или созвон, и куда можно ставить. Уже есть код? Введи его ниже.</p>
     <div class="lbl" style="margin-top:0">Я веду</div>
-    <div class="seg" id="oRole"><i class="th"></i><button data-v="lesson">Уроки</button><button data-v="call">Созвоны</button></div>
-    <div style="height:26px"></div>
-    <button class="big press" id="oNew">Создать общее расписание</button>
-    <div class="lbl">Или введи код от партнёра</div>
+    ${segHTML('oRole', [['lesson', 'Уроки'], ['call', 'Созвоны']])}
+    <div style="height:24px"></div>
+    <button class="btn tap" id="oNew">Создать общее расписание</button>
+    <div class="lbl">Или код от партнера</div>
     <div class="grp"><div class="row"><input id="oCode" placeholder="Код" autocapitalize="characters" autocomplete="off"></div></div>
     <div style="height:10px"></div>
-    <button class="big alt press" id="oJoin">Подключиться</button>`;
+    <button class="btn alt tap" id="oJoin">Подключиться</button>`;
   o.classList.remove('away');
-  seg($('#oRole'), role, v => role = v);
-  const done = code => { me = { pair: code, role }; SS('me', me); o.classList.add('away'); connect(); };
-  $('#oNew').onclick = () => { const c = genCode(); done(c); setTimeout(() => toast('Код ' + c + ' в Настройках, отправь его'), 600); };
+  glassSwitch($('#oRole'), role, v => role = v);
+  const done = code => { me = { pair: code, role }; SS('me', me); o.classList.add('away'); refreshAll(true); connect(); };
+  $('#oNew').onclick = () => { const c = genCode(); done(c); setTimeout(() => toast('Код ' + c + ' есть в Настройках, отправь его'), 700); };
   $('#oJoin').onclick = () => { const c = $('#oCode').value.trim().toUpperCase(); if (c.length < 6) { toast('Введи код полностью'); return; } done(c); };
 }
 
-/* ---------- старт ---------- */
+/* ================= старт ================= */
 renderDays($('#days'), sel, selectDay);
-renderList(true);
+renderHero(); renderList(true);
 if (!me) onboarding(); else connect();
-document.addEventListener('visibilitychange', () => { if (!document.hidden) { pull(); renderList(false); } });
-setInterval(() => { if (!document.hidden && !document.body.classList.contains('sheet-open')) renderList(false); }, 60000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { if (sb) pull(); else refreshAll(false); } });
+setInterval(() => { if (!document.hidden && !document.body.classList.contains('sheet-open')) refreshAll(false); }, 60000);
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js');
 </script>
 </body>
