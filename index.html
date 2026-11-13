@@ -381,6 +381,9 @@ body.sheet-open .sheet{transform:none}
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
 <script>
+/* Если что-то падает, показываем ошибку на экране, чтобы ее было видно */
+window.addEventListener('error', e => { try { toast('Ошибка: ' + (e.message || e.error)); } catch (x) {} });
+window.addEventListener('unhandledrejection', e => { try { toast('Ошибка: ' + ((e.reason && e.reason.message) || e.reason)); } catch (x) {} });
 /* Ключи Supabase лежат в config.js (window.RS_CONFIG). Этот файл обновляй смело, ключи не потеряются. */
 const CONFIG = window.RS_CONFIG || { url: '', key: '' };
 
@@ -436,9 +439,15 @@ const tgNick = v => String(v || '').trim().replace(/^https?:\/\/t\.me\//i, '').r
 const sortKey = e => e.day + hm(e.start_min);
 const durTxt = m => m === 60 ? '1 ч' : m === 90 ? '1,5 ч' : m === 120 ? '2 ч' : m + ' мин';
 
-let me = LS('me');
-let entries = LS('cache') || [];
-let students = LS('stu') || [];
+const APPV = '5';
+const cleanE = a => (Array.isArray(a) ? a : []).filter(e => e && e.id && typeof e.day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(e.day) && Number.isFinite(+e.start_min))
+  .map(e => ({ ...e, start_min: +e.start_min, dur_min: +e.dur_min || 60, kind: e.kind === 'call' ? 'call' : 'lesson', name: String(e.name || 'Без имени'), price: e.price == null ? '' : e.price }));
+const cleanS = a => (Array.isArray(a) ? a : []).filter(s => s && s.id && s.name)
+  .map(s => ({ ...s, name: String(s.name), plan: s.plan === 'single' ? 'single' : 'pkg', pkg_total: +s.pkg_total || 0, pkg_start: s.pkg_start || '2000-01-01', prior: +s.prior || 0, tg: s.tg || '', price: s.price == null ? '' : s.price }));
+if (LS('ver') !== APPV) { try { localStorage.removeItem('rs_cache'); localStorage.removeItem('rs_stu'); } catch (e) {} SS('ver', APPV); }
+let me = LS('me'); if (!me || typeof me !== 'object' || !me.pair) me = null; else if (me.role !== 'call') me.role = me.role === 'lesson' ? 'lesson' : 'lesson';
+let entries = cleanE(LS('cache'));
+let students = cleanS(LS('stu'));
 let sel = today();
 let tab = 'list';
 let sb = null, chan = null;
@@ -459,9 +468,9 @@ async function pull() {
     sb.from(T_S).select('*').eq('pair', me.pair).order('name')
   ]);
   if (a.error) { toast('База: ' + a.error.message); return; }
-  entries = a.data.map(r => ({ ...r, price: r.price == null ? '' : r.price }));
+  entries = cleanE(a.data);
   SS('cache', entries);
-  if (!b.error) { students = b.data.map(s => ({ ...s, prior: s.prior || 0, tg: s.tg || '' })); SS('stu', students); }
+  if (!b.error) { students = cleanS(b.data); SS('stu', students); }
   refreshAll(false);
 }
 const ping = () => { try { chan && chan.send({ type: 'broadcast', event: 'chg', payload: {} }); } catch (e) {} };
@@ -693,7 +702,7 @@ const sheet = $('#sheet');
 function openSheet(html) {
   sheet.innerHTML = '<div class="grab"></div>' + html;
   sheet.style.transform = ''; sheet.style.transition = '';
-  requestAnimationFrame(() => { document.body.classList.add('sheet-open'); tgBack(); });
+  void sheet.offsetHeight; document.body.classList.add('sheet-open'); try { tgBack(); } catch (e) {}
   vib(); bindDrag();
 }
 function closeSheet() { document.activeElement && document.activeElement.blur && document.activeElement.blur(); document.body.classList.remove('sheet-open'); setTimeout(tgBack, 0); }
@@ -967,6 +976,7 @@ function goTab(t) {
   $('#top').classList.toggle('away', t !== 'list');
   if (t === 'stu') renderStu(true); if (t === 'set') renderSet();
 }
+document.querySelectorAll('#tabs .tab').forEach(b => b.addEventListener('click', () => { if (b.dataset.v !== tab) goTab(b.dataset.v); }));
 const tabSw = glassSwitch($('#tabs'), 'list', v => goTab(v), { free: true, again: v => { if (v === 'list') { $('#pList').scrollTo({ top: 0, behavior: 'smooth' }); if (sel !== today()) selectDay(today()); } } });
 
 /* ================= шапка ================= */
@@ -1077,7 +1087,7 @@ renderHero(); renderList(true);
 function start() { if (!me) onboarding(); else connect(); }
 if (!me && TG && TG.CloudStorage) {
   let doneStart = false; const go = () => { if (!doneStart) { doneStart = true; start(); } };
-  try { TG.CloudStorage.getItem('rs_me', (err, val) => { if (!err && val) { try { me = JSON.parse(val); localStorage.setItem('rs_me', val); } catch (e) {} } go(); }); } catch (e) { go(); }
+  try { TG.CloudStorage.getItem('rs_me', (err, val) => { if (!err && val) { try { const v = JSON.parse(val); if (v && v.pair) { me = v; localStorage.setItem('rs_me', val); } } catch (e) {} } go(); }); } catch (e) { go(); }
   setTimeout(go, 1500);
 } else start();
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { if (sb) pull(); else refreshAll(false); } });
