@@ -708,13 +708,13 @@ function openSheet(html) {
 function closeSheet() { document.activeElement && document.activeElement.blur && document.activeElement.blur(); document.body.classList.remove('sheet-open'); setTimeout(tgBack, 0); }
 $('#scrim').onclick = closeSheet;
 function bindDrag() {
-  const head = $('.sh-head', sheet); if (!head) return;
+  const hd = $('.sh-head', sheet); if (!hd) return;
   let y0, dy = 0, down = false, t0 = 0;
-  head.addEventListener('pointerdown', ev => { if (ev.target.closest('button,label,a')) return; down = true; y0 = ev.clientY; dy = 0; t0 = Date.now(); sheet.style.transition = 'none'; });
+  hd.addEventListener('pointerdown', ev => { if (ev.target.closest('button,label,a')) return; down = true; y0 = ev.clientY; dy = 0; t0 = Date.now(); sheet.style.transition = 'none'; });
   window.onpointermove = ev => { if (!down) return; const d = ev.clientY - y0; dy = d > 0 ? d : d * .15; sheet.style.transform = `translateY(${dy}px)`; };
   window.onpointerup = () => { if (!down) return; down = false; const v = dy / Math.max(1, Date.now() - t0); sheet.style.transition = ''; sheet.style.transform = ''; if (dy > 120 || v > .55) closeSheet(); };
 }
-function head(title, ok) {
+function mkHead(title, ok) {
   return `<div class="sh-head"><button class="cbtn" id="shX" aria-label="Закрыть">${ICO.x}</button>
   <div class="sh-ttl" id="shT">${title}</div>${ok ? `<button class="cbtn dis" id="shOk" aria-label="Сохранить">${ICO.ok}</button>` : '<span style="width:44px"></span>'}</div>`;
 }
@@ -726,7 +726,7 @@ function openEditor(e, preset = {}) {
   F = e ? { id: e.id, kind: e.kind, day: e.day, start: e.start_min, dur: e.dur_min, name: e.name, price: e.price ?? '', edit: true }
         : { id: null, kind: preset.kind || (me && me.role) || 'lesson', day: preset.day || sel, start: null, dur: 60, name: preset.name || '', price: '', edit: false, pastMode: !!preset.past };
   if (!e && F.name) { const st = stuOf(F.name); if (st) { F.kind = 'lesson'; if (st.plan === 'single' && st.price) F.price = String(st.price); const x = stuStats(st); if (x.last) F.dur = x.last.dur_min; } }
-  openSheet(head(F.edit ? 'Запись' : F.pastMode ? 'Прошедшее занятие' : 'Новая запись', true) + `<div class="sh-body">
+  openSheet(mkHead(F.edit ? 'Запись' : F.pastMode ? 'Прошедшее занятие' : 'Новая запись', true) + `<div class="sh-body">
     ${segHTML('fKind', [['lesson', 'Урок'], ['call', 'Созвон']])}
     <div class="lbl">День</div><div class="days" id="fDays"></div>
     <div class="lbl">Время</div><div class="slots" id="fSlots"></div><div class="warn" id="fWarn"></div><div class="note" id="fNote"></div>
@@ -819,7 +819,7 @@ function openHistory() {
   });
   if (cur) h += '</div>';
   if (!past.length) h += '<div class="empty" style="padding-top:12vh"><b>Пока пусто</b><span>Здесь будут прошедшие уроки и созвоны.</span></div>';
-  openSheet(head('История', false) + `<div class="sh-body">${h}</div>`);
+  openSheet(mkHead('История', false) + `<div class="sh-body">${h}</div>`);
   $('#shX').onclick = closeSheet;
   $('#hAdd').onclick = () => later(() => openEditor(null, { day: today(), past: true }));
   sheet.querySelectorAll('.prow').forEach(b => b.onclick = () => { const e = entries.find(x => x.id === b.dataset.id); later(() => openEditor(e)); });
@@ -867,7 +867,7 @@ function openStudent(s) {
         : { id: uid(), name: '', plan: 'pkg', pkg_total: 8, pkg_start: '2000-01-01', price: '', prior: 0, tg: '', isNew: true };
   const x = stuStats(S);
   const nick = tgNick(S.tg);
-  openSheet(head(S.isNew ? 'Новый ученик' : '', true) + `<div class="sh-body">
+  openSheet(mkHead(S.isNew ? 'Новый ученик' : '', true) + `<div class="sh-body">
     <div class="phero"><span id="sAvaBox">${avaHTML(S.name || '?', S.tg, 88)}</span>${S.isNew ? '' : `<h2>${esc(S.name)}</h2><div class="sub">${S.plan === 'pkg' ? 'Абонемент' : 'Разовые занятия'} · ${x.total} ${plural(x.total, 'занятие', 'занятия', 'занятий')}</div>`}</div>
     ${S.isNew ? '' : `<div class="acts">
       <button class="act tap" id="aBook">${ICO.cal(22)}Записать</button>
@@ -960,7 +960,7 @@ function renderSet() {
   glassSwitch($('#setRole'), me.role, v => { me.role = v; SS('me', me); });
   $('#setCopy').onclick = async () => { try { await navigator.clipboard.writeText(me.pair); toast('Код скопирован'); } catch (e) { toast(me.pair); } };
   $('#setJoin').onclick = () => {
-    openSheet(head('Другой код', false) + `<div class="sh-body"><div class="lbl">Код от партнера</div><div class="grp"><div class="row"><input id="jCode" placeholder="Например K7M2QX9P" autocapitalize="characters" autocomplete="off"></div></div><div style="height:16px"></div><button class="btn tap" id="jGo">Подключиться</button></div>`);
+    openSheet(mkHead('Другой код', false) + `<div class="sh-body"><div class="lbl">Код от партнера</div><div class="grp"><div class="row"><input id="jCode" placeholder="Например K7M2QX9P" autocapitalize="characters" autocomplete="off"></div></div><div style="height:16px"></div><button class="btn tap" id="jGo">Подключиться</button></div>`);
     $('#shX').onclick = closeSheet;
     $('#jGo').onclick = () => { const c = $('#jCode').value.trim().toUpperCase(); if (c.length < 6) { toast('Код слишком короткий'); return; } me.pair = c; SS('me', me); entries = []; students = []; SS('cache', []); SS('stu', []); closeSheet(); renderSet(); refreshAll(false); connect(); toast('Подключено'); };
   };
